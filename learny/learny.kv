@@ -1,0 +1,282 @@
+WindowManager:
+    TelaLogin:
+    TelaCadastro:
+    TelaSelecionarImagem:
+    TelaBemVindo:
+    TelaHome:
+
+<TelaLogin>:
+    name: "TelaLogin"
+    FloatLayout:
+        Image:
+            source: 'assets/imagens/fundo-gradiente.png'
+            allow_stretch: True
+            keep_ratio: False
+            size_hint: 1, 1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        Image:
+            source: 'assets/imagens/logo-learny.png'
+            size_hint: (0.5, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.65}
+
+        Label:
+            text: "Entre na sua conta\n Learny"
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: 28
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.51}
+
+        Label:
+            text: "Faça login com suas informações de\n cadastro"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 22
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.42}
+
+        TextInput:
+            id: txt_usuario
+            hint_text: 'Usuário'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            size_hint: (None, None)
+            width: 385
+            height: 45
+            padding: [10, 12, 0, 10]
+            pos_hint: {'center_x': 0.5, 'y': 0.40}
+
+        TextInput:
+            id: txt_senha
+            hint_text: 'Senha'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            size_hint: (None, None)
+            width: 385
+            height: 45
+            padding: [10, 12, 0, 10]
+            pos_hint: {'center_x': 0.5, 'y': 0.33}
+            password: True
+            multiline: False
+
+        Button:
+            id: btn_entrar
+            text: 'Entrar'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 18
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            pos_hint: {'center_x': 0.5, 'y': 0.24}
+            on_press: root.on_enter_button_click()
+
+        Label:
+            text: "Sem uma conta?"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            size_hint: (0.3, 0.2)
+            pos_hint: {'center_x': 0.3, 'y': 0.09}
+
+        Button:
+            id: btn_cadastro
+            text: "Começe aqui"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            size_hint: (None, None)
+            width: 140
+            height: 25
+            pos_hint: {'center_x': 0.7, 'y': 0.172}
+            background_normal: ''  # Remove a textura padrão
+            background_down: ''    # Remove a textura quando pressionado
+            background_color: 0, 0, 0, 0  # Torna o fundo completamente transparente
+            color: (0.1, 0.1, 0.1, 1)
+            on_press:
+                root.manager.current = "TelaCadastro"
+                root.manager.transition.direction = "left"
+
+<TelaCadastro>:
+    name: "TelaCadastro"
+    FloatLayout:
+        Image:
+            source: 'assets/imagens/fundo-gradiente.png'
+            allow_stretch: True
+            keep_ratio: False
+            size_hint: 1, 1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        Label:
+            text: "Tela de Cadastro"
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: 28
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.70}
+    
+        Button:
+            text: "+"
+            size_hint: (None, None)
+            width: 130
+            height: 130
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: 50
+            color: (0.93, 0.35, 0.41, 1)  # Cor do texto
+            pos_hint: {'center_x': 0.5, 'y': 0.57}
+            background_color: 0, 0, 0, 0  # Transparente para desenharmos com o Canvas
+            canvas.before:
+                Color:
+                    rgba: 1, 1, 1, 1  # Cor de fundo do botão
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [15]  # Raio para bordas arredondadas
+            on_press: 
+                root.manager.current = "TelaSelecionarImagem"
+                root.manager.transition.direction = "left"
+
+        TextInput:
+            id: txt_usuario_cadastro
+            hint_text: 'Usuário'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            size_hint: (None, None)
+            width: 385
+            height: 45
+            padding: [10, 12, 0, 10]
+            pos_hint: {'center_x': 0.5, 'y': 0.48}
+
+        TextInput:
+            id: txt_senha_cadastro
+            hint_text: 'Senha'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            size_hint: (None, None)
+            width: 385
+            height: 45
+            padding: [10, 12, 0, 10]
+            pos_hint: {'center_x': 0.5, 'y': 0.41}
+        
+        TextInput:
+            id: txt_data_nasc_cadastro
+            hint_text: 'Data de nascimento'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            size_hint: (None, None)
+            width: 385
+            height: 45
+            padding: [10, 12, 0, 10]
+            pos_hint: {'center_x': 0.5, 'y': 0.34}
+
+        Button:
+            id: btn_cadastrar
+            text: 'Cadastrar'
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 18
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            pos_hint: {'center_x': 0.5, 'y': 0.24}
+            on_press: root.on_register_button_click()
+
+        Label:
+            text: "Possui uma conta?"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            size_hint: (0.27, 0.2)
+            pos_hint: {'center_x': 0.33, 'y': 0.09}
+
+        Button:
+            id: btn_login
+            text: "Entre aqui"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            size_hint: (None, None)
+            width: 140
+            height: 25
+            pos_hint: {'center_x': 0.73, 'y': 0.172}
+            background_normal: ''  # Remove a textura padrão
+            background_down: ''    # Remove a textura quando pressionado
+            background_color: 0, 0, 0, 0  # Torna o fundo completamente transparente
+            color: (0.1, 0.1, 0.1, 1)
+            on_press:
+                root.manager.current = "TelaLogin"
+                root.manager.transition.direction = "right"
+
+<TelaSelecionarImagem>:
+    id: seletor_imagem
+    FloatLayout:
+        Image:
+            source: 'assets/imagens/fundo-gradiente.png'
+            allow_stretch: True
+            keep_ratio: False
+            size_hint: 1, 1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        Image:
+            id: my_image
+            source: ""
+            size_hint: (0.6, 0.3)
+            pos_hint: {'center_x': 0.5, 'top': 0.89}
+
+        FileChooserIconView:
+            id: filechooser
+            path: 'C:/Users'  # Exemplo de caminho para a pasta de imagens do usuário
+            filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
+            size_hint: (0.8, 0.3)
+            pos_hint: {'center_x': 0.5, 'y': 0.24}
+            on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
+        
+        Button:
+            text: "Selecionar"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 18
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            pos_hint: {'center_x': 0.5, 'y': 0.16}
+            on_press: seletor_imagem.selected(filechooser.selection)
+        
+        Button:
+            text: "Voltar"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 18
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            pos_hint: {'center_x': 0.5, 'y': 0.09}
+            on_press:
+                root.manager.current = "TelaCadastro"
+                root.manager.transition.direction = "right"
+
+<TelaBemVindo>:
+    name: "TelaHome"
+    FloatLayout:
+        Image:
+            source: 'assets/imagens/fundo-gradiente.png'
+            allow_stretch: True
+            keep_ratio: False
+            size_hint: 1, 1
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        Label:
+            text: "Bem vindo(a),"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 22
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.51}
+
+        Label:
+            id: lbl_transicao
+            text: ""
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: 28
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.42}
+
+
+<TelaHome>:
+    name: "TelaHome"
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1  # Cor branca (RGBA)
+            Rectangle:
+                pos: self.pos
+                size: self.size
