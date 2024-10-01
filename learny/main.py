@@ -122,7 +122,7 @@ class TelaSelecionarImagem(Screen, Widget):
                 origem = filename[0]
                 
                 # Diretório de destino
-                destino_dir = 'C:/Users/João/Desktop/testes-pi/assets/imagens/fotos-criancas' # Trocar o nome de usuário quando for utilizar no seu PC
+                destino_dir = 'C:/Users'
                 
                 # Certifique-se de que o diretório de destino existe
                 if not os.path.exists(destino_dir):
