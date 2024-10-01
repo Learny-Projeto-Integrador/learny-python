@@ -40,20 +40,26 @@ WindowManager:
             id: txt_usuario
             hint_text: 'Usuário'
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: self.height * 0.45
             size_hint: (None, None)
             width: 385
             height: 45
-            padding: [10, 12, 0, 10]
+            valign: 'middle'  # Centraliza o texto verticalmente
+            multiline: False  # Para garantir que o texto fique em uma linha só
+            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
             pos_hint: {'center_x': 0.5, 'y': 0.40}
 
         TextInput:
             id: txt_senha
             hint_text: 'Senha'
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: self.height * 0.45
             size_hint: (None, None)
             width: 385
             height: 45
-            padding: [10, 12, 0, 10]
+            valign: 'middle'  # Centraliza o texto verticalmente
+            multiline: False  # Para garantir que o texto fique em uma linha só
+            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
             pos_hint: {'center_x': 0.5, 'y': 0.33}
             password: True
             multiline: False
@@ -113,9 +119,7 @@ WindowManager:
     
         Button:
             text: "+"
-            size_hint: (None, None)
-            width: 130
-            height: 130
+            size_hint: (0.28, 0.18)
             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
             font_size: 50
             color: (0.93, 0.35, 0.41, 1)  # Cor do texto
@@ -136,30 +140,39 @@ WindowManager:
             id: txt_usuario_cadastro
             hint_text: 'Usuário'
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: self.height * 0.45
             size_hint: (None, None)
             width: 385
             height: 45
-            padding: [10, 12, 0, 10]
+            valign: 'middle'  # Centraliza o texto verticalmente
+            multiline: False  # Para garantir que o texto fique em uma linha só
+            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
             pos_hint: {'center_x': 0.5, 'y': 0.48}
 
         TextInput:
             id: txt_senha_cadastro
             hint_text: 'Senha'
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: self.height * 0.45
             size_hint: (None, None)
             width: 385
             height: 45
-            padding: [10, 12, 0, 10]
+            valign: 'middle'  # Centraliza o texto verticalmente
+            multiline: False  # Para garantir que o texto fique em uma linha só
+            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
             pos_hint: {'center_x': 0.5, 'y': 0.41}
         
         TextInput:
             id: txt_data_nasc_cadastro
             hint_text: 'Data de nascimento'
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: self.height * 0.45
             size_hint: (None, None)
             width: 385
             height: 45
-            padding: [10, 12, 0, 10]
+            valign: 'middle'  # Centraliza o texto verticalmente
+            multiline: False  # Para garantir que o texto fique em uma linha só
+            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
             pos_hint: {'center_x': 0.5, 'y': 0.34}
 
         Button:
@@ -217,7 +230,7 @@ WindowManager:
             id: filechooser
             path: 'C:/Users'  # Exemplo de caminho para a pasta de imagens do usuário
             filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
-            size_hint: (0.8, 0.3)
+            size_hint: (0.9, 0.3)
             pos_hint: {'center_x': 0.5, 'y': 0.24}
             on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
         

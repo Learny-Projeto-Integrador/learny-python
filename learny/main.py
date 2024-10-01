@@ -12,15 +12,15 @@ from kivy.uix.widget import Widget
 import shutil
 import os
 
-# Define o tamanho da janela
-Window.size = (480, 800)  # Largura x Altura
+# Define o tamanho dinâmico da janela com base em 80% da altura e 35% da largura da tela
+Window.size = (Window.width * 0.35, Window.height * 0.7)
 
-# Obtém a resolução da tela
+# Obtém o tamanho total da tela
 screen_width, screen_height = Window.system_size
 
-# Centraliza a janela na tela (Não está funcionando 100%)
-Window.left = (screen_width + Window.width) / 1.75
-Window.top = (screen_height - Window.height) / 1.75
+# Define a posição como percentagens
+Window.left = screen_width
+Window.top = screen_height * 0.07
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
