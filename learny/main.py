@@ -121,8 +121,11 @@ class TelaSelecionarImagem(Screen, Widget):
                 # Caminho do arquivo original (imagem selecionada)
                 origem = filename[0]
                 
-                # Diretório de destino
-                destino_dir = 'C:/Users'
+                # Diretório do projeto
+                projeto_dir = os.path.dirname(os.path.abspath(__file__))
+            
+                # Define a pasta de destino para fotos-criancas dentro do diretório do projeto
+                destino_dir = os.path.join(projeto_dir, 'assets/imagens/fotos-criancas')
                 
                 # Certifique-se de que o diretório de destino existe
                 if not os.path.exists(destino_dir):
