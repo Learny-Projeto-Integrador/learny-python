@@ -9,11 +9,14 @@ from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
+from kivy.metrics import dp
+from config.conexao import *
+from config.conexao_local import *
 import shutil
 import os
 
 # Define o tamanho da janela
-Window.size = (480, 800)
+Window.size = (dp(280), dp(400))
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
@@ -52,25 +55,46 @@ class TelaLogin(Screen):
 class TelaCadastro(Screen):
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
-        # Variáveis que armazenam os valores obtidos nos campos
-        usuario = self.ids.txt_usuario_cadastro.text
-        senha = self.ids.txt_senha_cadastro.text
-        data_nasc = self.ids.txt_data_nasc_cadastro.text
-        
-        # Acessar a tela de seleção de imagem através do ScreenManager
-        tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db:
+                # Buscando a coleção para adicionar
+                criancas = db["criancas"]
+                
+                # Variáveis que armazenam os valores obtidos nos campos
+                usuario = self.ids.txt_usuario_cadastro.text
+                senha = self.ids.txt_senha_cadastro.text
+                data_nasc = self.ids.txt_data_nasc_cadastro.text
+                
+                # Acessar a tela de seleção de imagem através do ScreenManager
+                tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
 
-        # Obter o caminho da imagem copiada
-        caminho_imagem = tela_selecionar_imagem.destino_imagem
+                # Obter o caminho da imagem copiada
+                caminho_imagem = tela_selecionar_imagem.destino_imagem
+                
+                # Lógica de Cadastro
+                if usuario != "" and senha != "" and data_nasc != "" and caminho_imagem is not None:  # Verificar se todos os campos foram preenchidos
+                    # Inserir o código de cadastro para o MongoDB
+                    crianca = {
+                        'Usuario': usuario,
+                        'Senha': senha,
+                        'Data de Nascimento': data_nasc,
+                        'Foto': caminho_imagem
+                    }
+                    criancas.insert_one(crianca)
+                    
+                    # Exibir popup de sucesso
+                    self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!", "ok")
+                else:
+                    # Exibir popup de erro se faltar dados
+                    self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
         
-        # Lógica de Cadastro
-        if usuario != "" and senha != "" and data_nasc != "" and caminho_imagem is not None: # Verificar se todos os campos foram preenchidos
-            # Inserir o código de cadastro para o MongoDB Atlas
-            print(f"Usuário: {usuario}, Senha: {senha}, Data de Nascimento: {data_nasc}, Imagem: {caminho_imagem}")
-            self.show_popup("Dados Cadastados", "Seus dados foram cadastrados com sucesso!", "ok")      
-        else:
-            self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
-            print(f"Usuário: {usuario}, Senha: {senha}, Data de Nascimento: {data_nasc}, Imagem: {caminho_imagem}")
+        except PyMongoError as e:
+            print("Erro ao cadastrar a criança:", e)
+        
+        finally:
+            close_connection(client)
+
 
     # Função para mostrar o popup
     def show_popup(self, title, message, status):
