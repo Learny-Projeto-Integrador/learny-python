@@ -14,6 +14,9 @@ from config.conexao import *
 from config.conexao_local import *
 import shutil
 import os
+import logging
+
+logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
 # Define o tamanho da janela
 Window.size = (dp(280), dp(400))
@@ -25,39 +28,57 @@ class WindowManager(ScreenManager):
 class TelaLogin(Screen):
     # Função onclick para o botão entrar
     def on_enter_button_click(self):
-        # Variáveis que armazenam os valores obtidos nos campos
-        usuario = self.ids.txt_usuario.text
-        senha = self.ids.txt_senha.text
-        
-        # Lógica de autenticação
-        if usuario == "admin" and senha == "1234": # Trocar pela autenticação com os usuários do Banco
-            self.go_bem_vindo("Joana") # Trocar o nome pelo nome do usuário que vier do banco
-            Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
-        else:
-            self.show_popup("Erro de Login", "Usuário ou senha incorretos.")
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção de usuários (no caso, a coleção "criancas")
+                criancas = db["criancas"]
+                
+                # Variáveis que armazenam os valores obtidos nos campos
+                usuario = self.ids.txt_usuario.text
+                senha = self.ids.txt_senha.text
+
+                # Buscar o usuário na coleção pelo nome de usuário
+                usuario_banco = criancas.find_one({"usuario": usuario})
+
+                # Verificar se o usuário foi encontrado e se a senha está correta
+                if usuario_banco and usuario_banco['senha'] == senha:
+                    self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
+                    Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
+                else:
+                    self.show_popup("Erro de Login", "Usuário ou senha incorretos.")
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao fazer login:", e)
+
+        finally:
+            close_connection(client)
 
     # Função para mostrar o popup
     def show_popup(self, title, message):
         self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
         self.popup.open()
 
-    # Função para ir para a tela de boas vindas e mudar o nome de acordo com o usuário autenticado
+    # Função para ir para a tela de boas-vindas e mudar o nome de acordo com o usuário autenticado
     def go_bem_vindo(self, usuario):
-        self.manager.get_screen('TelaBemVindo').ids.lbl_transicao.text = f"{usuario}" # Troca o texto da label
+        self.manager.get_screen('TelaBemVindo').ids.lbl_transicao.text = f"Bem-vindo, {usuario}!"
         self.manager.transition.direction = 'left'  # Define a direção para a transição entre as telas
         self.manager.current = 'TelaBemVindo'  # Muda para a tela de transição do login
-        
+
     # Função para ir para a tela Home
     def go_home(self, dt):
         self.manager.transition.direction = 'left'  # Define a direção para a transição
         self.manager.current = 'TelaHome'  # Muda para a tela Home
+
 
 class TelaCadastro(Screen):
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
-            if db:
+            if db is not None:
                 # Buscando a coleção para adicionar
                 criancas = db["criancas"]
                 
@@ -88,10 +109,12 @@ class TelaCadastro(Screen):
                 else:
                     # Exibir popup de erro se faltar dados
                     self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
-        
+            else:
+                print("Erro na conexão com o banco de dados.")
+
         except PyMongoError as e:
             print("Erro ao cadastrar a criança:", e)
-        
+
         finally:
             close_connection(client)
 
