@@ -7,97 +7,118 @@ WindowManager:
 
 <TelaLogin>:
     name: "TelaLogin"
-    FloatLayout:
-        Image:
-            source: 'assets/imagens/fundo-gradiente.png'
-            allow_stretch: True
-            keep_ratio: False
-            size_hint: 1, 1
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint: 1, 1  # O MDBoxLayout cobre toda a tela
+        padding: [60,0,60,0]
+        spacing: 20
 
-        Image:
-            source: 'assets/imagens/logo-learny.png'
-            size_hint: (0.5, 0.2)
-            pos_hint: {'center_x': 0.5, 'y': 0.65}
+        # Adiciona a imagem de fundo
+        canvas.before:
+            Rectangle:
+                source: 'assets/imagens/fundo-gradiente.png'  # Caminho da sua imagem de fundo
+                size: self.size
+                pos: self.pos
 
-        Label:
-            text: "Entre na sua conta\n Learny"
-            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-            font_size: 28
-            size_hint: (0.5, 0.2)
-            halign: "center"
-            pos_hint: {'center_x': 0.5, 'y': 0.51}
+        # Logo
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: '100dp'
+            Image:
+                source: 'assets/imagens/logo-learny.png'
+                size_hint: (0.5, 0.5)
+                pos_hint: {'center_x': 0.5}
 
-        Label:
-            text: "Faça login com suas informações de\n cadastro"
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: 22
-            size_hint: (0.5, 0.2)
-            halign: "center"
-            pos_hint: {'center_x': 0.5, 'y': 0.42}
+        # Títulos
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: '120dp'
+            MDLabel:
+                text: "Entre na sua conta\n Learny"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
 
-        TextInput:
-            id: txt_usuario
-            hint_text: 'Usuário'
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: self.height * 0.45
-            size_hint: (None, None)
-            width: 385
-            height: 45
-            valign: 'middle'  # Centraliza o texto verticalmente
-            multiline: False  # Para garantir que o texto fique em uma linha só
-            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
-            pos_hint: {'center_x': 0.5, 'y': 0.40}
+            MDLabel:
+                text: "Faça login com suas informações de\n cadastro"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "18sp"
+                halign: "center"
 
-        TextInput:
-            id: txt_senha
-            hint_text: 'Senha'
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: self.height * 0.45
-            size_hint: (None, None)
-            width: 385
-            height: 45
-            valign: 'middle'  # Centraliza o texto verticalmente
-            multiline: False  # Para garantir que o texto fique em uma linha só
-            padding: [10, (self.height - self.line_height) / 2]  # Padding para ajustar o texto verticalmente
-            pos_hint: {'center_x': 0.5, 'y': 0.33}
-            password: True
-            multiline: False
+        # Campos de texto
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: '130dp'
+            pos_hint: {'center_x': 0.5}
+            spacing: 10
 
-        Button:
-            id: btn_entrar
-            text: 'Entrar'
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: 18
-            size_hint: (None, None)
-            width: 180
-            height: 45
-            pos_hint: {'center_x': 0.5, 'y': 0.24}
-            on_press: root.on_enter_button_click()
+            MDTextField:
+                id: txt_usuario
+                hint_text: 'Usuário'
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "18sp"
+                size_hint: 1, None
+                height: '45dp'
 
-        Label:
-            text: "Sem uma conta?"
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: 20
-            size_hint: (0.3, 0.2)
-            pos_hint: {'center_x': 0.3, 'y': 0.09}
+            MDTextField:
+                id: txt_senha
+                hint_text: 'Senha'
+                password: True
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "18sp"
+                size_hint: 1, None
+                height: '45dp'
 
-        Button:
-            id: btn_cadastro
-            text: "Começe aqui"
-            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-            font_size: 20
-            size_hint: (None, None)
-            width: 140
-            height: 25
-            pos_hint: {'center_x': 0.7, 'y': 0.172}
-            background_normal: ''  # Remove a textura padrão
-            background_down: ''    # Remove a textura quando pressionado
-            background_color: 0, 0, 0, 0  # Torna o fundo completamente transparente
-            color: (0.1, 0.1, 0.1, 1)
-            on_press:
-                root.manager.current = "TelaCadastro"
-                root.manager.transition.direction = "left"
+        # Botão Entrar
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint_y: None
+            height: '40dp'
+            MDRaisedButton:
+                id: btn_entrar
+                text: 'Entrar'
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "18sp"
+                size_hint: None, None
+                width: 180
+                height: 45
+                pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza horizontal e verticalmente
+                on_press: root.on_enter_button_click()
+
+
+        # Cadastro
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None  # Permite que o layout tenha um tamanho específico
+            size: self.minimum_size  # O layout se ajusta ao tamanho mínimo dos filhos
+            height: '40dp'
+            spacing: 10  # Espaçamento pequeno entre os componentes
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o layout na tela
+
+            MDLabel:
+                text: "Sem uma conta?"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                halign: 'left'
+                size_hint_x: None  # Permite que a largura do Label seja fixa
+                width: '150dp' # Ajusta a largura com base no texto
+
+            MDFlatButton:
+                id: btn_cadastro
+                text: "Comece aqui"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                size_hint: None, None
+                width: 140
+                height: 25
+                on_press:
+                    root.manager.current = "TelaCadastro"
+                    root.manager.transition.direction = "left"
+
+
 
 <TelaCadastro>:
     name: "TelaCadastro"

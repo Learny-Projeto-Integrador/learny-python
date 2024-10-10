@@ -10,6 +10,7 @@ from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.metrics import dp
+from kivymd.app import MDApp
 from config.conexao import *
 from config.conexao_local import *
 import shutil
@@ -190,7 +191,7 @@ class TelaSelecionarImagem(Screen, Widget):
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
     
-class Learny(App):
+class Learny(MDApp):
     def build(self):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
