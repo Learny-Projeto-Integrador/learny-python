@@ -20,7 +20,7 @@ import logging
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
 # Define o tamanho da janela
-Window.size = (dp(280), dp(400))
+Window.size = (480, 800)
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
@@ -181,13 +181,21 @@ class TelaSelecionarImagem(Screen, Widget):
                     shutil.copy(origem, destino)
                     print(f"Imagem copiada para: {destino}")
                     self.manager.transition.direction = 'right'  # Define a direção para a transição
-                    self.manager.current = 'TelaCadastro'  # Voltar para a TelaCadastro
                 else:
                     print(f"Arquivo já existe em: {destino}")
                     
                 # Armazena o caminho da imagem copiada
                 self.destino_imagem = destino
                 
+                # Atualiza o botão na tela de cadastro com a imagem selecionada
+                tela_cadastro = self.manager.get_screen('TelaCadastro')
+                tela_cadastro.ids.image_button.background_normal = self.destino_imagem
+                tela_cadastro.ids.image_button.text = ""  # Remove o texto "+" após a seleção da imagem
+
+                # Volta para a TelaCadastro com a transição
+                self.manager.transition.direction = 'right'
+                self.manager.current = 'TelaCadastro'
+            
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
     
