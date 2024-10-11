@@ -13,6 +13,8 @@ from kivy.metrics import dp
 from kivymd.app import MDApp
 from config.conexao import *
 from config.conexao_local import *
+from kivymd.uix.pickers import MDDatePicker
+from kivy.graphics import Color, Rectangle
 import shutil
 import os
 import logging
@@ -26,7 +28,20 @@ Window.size = (480, 800)
 class WindowManager(ScreenManager):
     pass
 
-class TelaLogin(Screen):
+class BaseScreen(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.preload_background()
+
+    def preload_background(self):
+        with self.canvas.before:
+            Color(1, 1, 1, 1)  # Altere para a cor desejada se precisar
+            self.bg_rect = Rectangle(source='assets/imagens/fundo-gradiente.png', size=self.size)
+
+    def on_size(self, *args):
+        self.bg_rect.size = self.size  # Atualiza o tamanho do retângulo quando a tela muda
+
+class TelaLogin(BaseScreen):
     # Função onclick para o botão entrar
     def on_enter_button_click(self):
         try:
@@ -74,7 +89,7 @@ class TelaLogin(Screen):
         self.manager.current = 'TelaHome'  # Muda para a tela Home
 
 
-class TelaCadastro(Screen):
+class TelaCadastro(BaseScreen):
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
         try:
@@ -86,6 +101,7 @@ class TelaCadastro(Screen):
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario_cadastro.text
                 senha = self.ids.txt_senha_cadastro.text
+                nome = self.ids.txt_nome_cadastro.text  # Novo campo de nome
                 data_nasc = self.ids.txt_data_nasc_cadastro.text
                 
                 # Acessar a tela de seleção de imagem através do ScreenManager
@@ -95,13 +111,13 @@ class TelaCadastro(Screen):
                 caminho_imagem = tela_selecionar_imagem.destino_imagem
                 
                 # Lógica de Cadastro
-                if usuario != "" and senha != "" and data_nasc != "" and caminho_imagem is not None:  # Verificar se todos os campos foram preenchidos
-                    # Inserir o código de cadastro para o MongoDB
+                if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
                     crianca = {
-                        'Usuario': usuario,
-                        'Senha': senha,
-                        'Data de Nascimento': data_nasc,
-                        'Foto': caminho_imagem
+                        'usuario': usuario,
+                        'senha': senha,
+                        'nome': nome,  # Novo campo de nome
+                        'data_de_nascimento': data_nasc,
+                        'foto': caminho_imagem
                     }
                     criancas.insert_one(crianca)
                     
@@ -135,13 +151,13 @@ class TelaCadastro(Screen):
         self.manager.transition.direction = 'right'  # Define a direção para a transição
         self.manager.current = 'TelaLogin'  # Muda para a tela Home
 
-class TelaBemVindo(Screen):
+class TelaBemVindo(BaseScreen):
     pass
 
 class TelaHome(Screen):
     pass
 
-class TelaSelecionarImagem(Screen, Widget):
+class TelaSelecionarImagem(BaseScreen, Widget):
     
     destino_imagem = None  # Variável para armazenar o caminho da imagem copiada
     
@@ -161,32 +177,31 @@ class TelaSelecionarImagem(Screen, Widget):
             try:
                 # Caminho do arquivo original (imagem selecionada)
                 origem = filename[0]
-                
+
                 # Diretório do projeto
                 projeto_dir = os.path.dirname(os.path.abspath(__file__))
-            
+
                 # Define a pasta de destino para fotos-criancas dentro do diretório do projeto
                 destino_dir = os.path.join(projeto_dir, 'assets/imagens/fotos-criancas')
-                
+
                 # Certifique-se de que o diretório de destino existe
                 if not os.path.exists(destino_dir):
                     os.makedirs(destino_dir)
-                
+
                 # Caminho completo do arquivo no destino
                 destino = os.path.join(destino_dir, os.path.basename(origem))
-                
+
                 # Verificar se o arquivo já existe no destino
                 if not os.path.exists(destino):
                     # Copiar o arquivo se ele ainda não foi copiado
                     shutil.copy(origem, destino)
                     print(f"Imagem copiada para: {destino}")
-                    self.manager.transition.direction = 'right'  # Define a direção para a transição
                 else:
                     print(f"Arquivo já existe em: {destino}")
-                    
+
                 # Armazena o caminho da imagem copiada
                 self.destino_imagem = destino
-                
+
                 # Atualiza o botão na tela de cadastro com a imagem selecionada
                 tela_cadastro = self.manager.get_screen('TelaCadastro')
                 tela_cadastro.ids.image_button.background_normal = self.destino_imagem
@@ -195,7 +210,7 @@ class TelaSelecionarImagem(Screen, Widget):
                 # Volta para a TelaCadastro com a transição
                 self.manager.transition.direction = 'right'
                 self.manager.current = 'TelaCadastro'
-            
+
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
     
@@ -211,6 +226,41 @@ class Learny(MDApp):
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
+
+    def on_save(self, instance, value, date_range):
+        '''
+        Events called when the "OK" dialog box button is clicked.
+
+        :type instance: <kivymd.uix.picker.MDDatePicker object>;
+        :param value: selected date;
+        :type value: <class 'datetime.date'>;
+        :param date_range: list of 'datetime.date' objects in the selected range;
+        :type date_range: <class 'list'>;
+        '''
+        
+        # Acessa a tela de cadastro usando o ScreenManager
+        tela_cadastro = self.root.get_screen('TelaCadastro')
+        
+        # Armazena a data selecionada em uma variável
+        selected_date = value.strftime('%d/%m/%Y')  # Formata a data como dd/mm/yyyy
+
+        # Atualiza o texto do campo de data de nascimento na tela de cadastro
+        tela_cadastro.ids.txt_data_nasc_cadastro.text = selected_date
+        
+        print(instance, value, date_range)
+
+    def on_cancel(self, instance, value):
+        '''Events called when the "CANCEL" dialog box button is clicked.'''
+
+    def show_date_picker(self):
+        date_dialog = MDDatePicker(
+            title="Selecione a Data",
+            title_input="Digite a Data",
+            helper_text=""
+        )
+        date_dialog.bind(on_save=self.on_save, on_cancel=self.on_cancel)
+        date_dialog.open()
+
 
 if __name__ == "__main__":
     Learny().run()
