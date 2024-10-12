@@ -22,7 +22,7 @@ import logging
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
 # Define o tamanho da janela
-Window.size = (480, 800)
+Window.size = (400, 600)
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
@@ -202,10 +202,14 @@ class TelaSelecionarImagem(BaseScreen, Widget):
                 # Armazena o caminho da imagem copiada
                 self.destino_imagem = destino
 
-                # Atualiza o botão na tela de cadastro com a imagem selecionada
+                # Acessa a tela de cadastro
                 tela_cadastro = self.manager.get_screen('TelaCadastro')
-                tela_cadastro.ids.image_button.background_normal = self.destino_imagem
-                tela_cadastro.ids.image_button.text = ""  # Remove o texto "+" após a seleção da imagem
+                # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
+                tela_cadastro.ids.img_cadastro.source = self.destino_imagem
+                # Remove o texto "+" do botão
+                tela_cadastro.ids.image_button.text = ""  
+                # Mantém o botão transparente e sem imagem de fundo
+                tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
 
                 # Volta para a TelaCadastro com a transição
                 self.manager.transition.direction = 'right'

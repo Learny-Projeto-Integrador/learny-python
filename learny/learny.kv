@@ -12,7 +12,7 @@ WindowManager:
         Image:
             source: 'assets/imagens/logo-learny.png'
             size_hint: (0.5, 0.3)
-            pos_hint: {'center_x': 0.5, 'top': 0.9}
+            pos_hint: {'center_x': 0.5, 'top': 0.92}
 
         # Agrupando os Títulos em um BoxLayout
         MDBoxLayout:
@@ -20,7 +20,7 @@ WindowManager:
             size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
             height: self.minimum_height
             spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.65}
+            pos_hint: {'center_x': 0.5, 'top': 0.67}
 
             MDLabel:
                 text: "Entre na sua conta\n Learny"
@@ -33,7 +33,7 @@ WindowManager:
                 height: self.texture_size[1]
 
             MDLabel:
-                text: "Faça login com suas informações de\n cadastro"
+                text: "Faça login com suas informações de cadastro"
                 font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
                 font_size: "18sp"
                 halign: "center"
@@ -48,7 +48,7 @@ WindowManager:
             size_hint: 0.8, None
             height: 80
             spacing: 20
-            pos_hint: {'center_x': 0.5, 'top': 0.45}
+            pos_hint: {'center_x': 0.5, 'top': 0.40}
 
             MDTextField:
                 id: txt_usuario
@@ -72,8 +72,8 @@ WindowManager:
             id: btn_entrar
             text: 'Entrar'
             icon: "assets/imagens/icon-confirmar.png"
-            icon_size: "50sp"
-            pos_hint: {'center_x': 0.5, 'top': 0.32}
+            icon_size: "45sp"
+            pos_hint: {'center_x': 0.5, 'top': 0.30}
             on_press: root.on_enter_button_click()
 
         # Seção de cadastro agrupada em um BoxLayout
@@ -83,7 +83,7 @@ WindowManager:
             size: self.minimum_size
             height: '40dp'
             spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.2}
+            pos_hint: {'center_x': 0.5, 'top': 0.175}
 
             MDLabel:
                 text: "Sem uma conta?"
@@ -110,7 +110,6 @@ WindowManager:
                 text_color: (0, 0, 0, 1)
 
 
-
 <TelaCadastro>:
     name: "TelaCadastro"
     MDFloatLayout:
@@ -121,7 +120,7 @@ WindowManager:
             size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
             height: self.minimum_height
             spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.83}
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
 
             MDLabel:
                 text: "Tela de Cadastro"
@@ -133,26 +132,40 @@ WindowManager:
                 size_hint_y: None
                 height: self.texture_size[1]
 
-
-        Button:
-            id: image_button  # Adicione um id para referenciar esse botão
-            text: "+"  # Começa com o texto +
+        MDCard:
             size_hint: (0.28, 0.18)
-            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-            font_size: 50
-            color: (0.93, 0.35, 0.41, 1)  # Cor do texto
-            pos_hint: {'center_x': 0.5, 'y': 0.58}
-            background_normal: ""  # Deixa o fundo vazio inicialmente
-            on_press:
-                root.manager.current = "TelaSelecionarImagem"
-                root.manager.transition.direction = "left"
+            pos_hint: {'center_x': 0.5, 'y': 0.63}
+            radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+            elevation: 0
+
+            FloatLayout:  # Empilha a imagem e o botão
+                FitImage:  # A imagem será colocada primeiro, preenchendo o card
+                    id: img_cadastro
+                    source: "seu_caminho_para_a_imagem.png"
+                    size_hint: (1, 1)  # Ocupará todo o espaço do card
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                Button:
+                    id: image_button  # Adicione um id para referenciar esse botão
+                    text: "+"  # Texto centralizado com o ícone +
+                    font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                    font_size: 50
+                    color: (0.93, 0.35, 0.41, 1)  # Cor do texto
+                    size_hint: (1, 1)  # O botão vai ocupar 100% do espaço do card
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
+                    background_normal: ""  # Remove a imagem de fundo
+                    background_color: (0, 0, 0, 0)  # Torna o fundo transparente
+                    on_press:
+                        root.manager.current = "TelaSelecionarImagem"
+                        root.manager.transition.direction = "left"
 
         # Campos de texto agrupados em BoxLayout
         MDBoxLayout:
             orientation: 'vertical'
             size_hint: 0.8, None
             spacing: 20
-            pos_hint: {'center_x': 0.5, 'top': 0.42}
+            pos_hint: {'center_x': 0.5, 'top': 0.40}
 
             MDTextField:
                 id: txt_usuario_cadastro
@@ -191,7 +204,7 @@ WindowManager:
             id: btn_entrar
             text: 'Entrar'
             icon: "assets/imagens/icon-confirmar.png"
-            icon_size: "50sp"
+            icon_size: "45sp"
             pos_hint: {'center_x': 0.5, 'top': 0.27}
             on_press: root.on_register_button_click()
 
@@ -202,7 +215,7 @@ WindowManager:
             size: self.minimum_size
             height: '40dp'
             spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.16}
+            pos_hint: {'center_x': 0.5, 'top': 0.14}
 
             MDLabel:
                 text: "Já possui uma conta?"
@@ -233,17 +246,40 @@ WindowManager:
     id: seletor_imagem
     MDFloatLayout:
 
-        Image:
-            id: my_image
-            source: ""
+        # Agrupando os Títulos em um BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
+            height: self.minimum_height
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
+
+            MDLabel:
+                text: "Selecionar Imagem"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+        MDCard:
             size_hint: (0.28, 0.18)
-            pos_hint: {'center_x': 0.5, 'y': 0.65}
-            allow_stretch: True  # Permitir que a imagem seja redimensionada
-            keep_ratio: False  # Forçar o preenchimento do espaço disponível
+            pos_hint: {'center_x': 0.5, 'y': 0.64}
+            radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+            elevation: 0
+            
+            FitImage:  # Utilizamos FitImage para ajustar a imagem ao tamanho do Card
+                id: my_image
+                source: "seu_caminho_para_a_imagem.png"
+                size_hint: (1, 1)  # Ocupará todo o espaço do card
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
 
         MDBoxLayout:
             orientation: 'vertical'
-            size_hint: (0.8, 0.3)
+            size_hint: (0.85, 0.3)
             spacing: 20
             pos_hint: {'center_x': 0.5, 'y': 0.30}
 
@@ -257,7 +293,7 @@ WindowManager:
 
             FileChooserIconView:
                 id: filechooser
-                path: 'C:/Users'  # Exemplo de caminho para a pasta de imagens do usuário
+                path: 'C:/Users/fatec-dsm3/Desktop'  # Exemplo de caminho para a pasta de imagens do usuário
                 filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
                 size_hint: (1, 1)
                 on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
@@ -270,7 +306,7 @@ WindowManager:
             size_hint: (None, None)
             width: 180
             height: 45
-            pos_hint: {'center_x': 0.5, 'y': 0.20}
+            pos_hint: {'center_x': 0.5, 'y': 0.21}
             on_press: seletor_imagem.selected(filechooser.selection)
         
         MDRaisedButton:
