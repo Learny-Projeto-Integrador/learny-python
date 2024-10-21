@@ -1,20 +1,18 @@
 # Instale as bibliotecas
 # pip install pymongo | pip install kivy | pip install pygame (ainda não está sendo usado)
 
-from kivy.app import App
-from kivy.lang import Builder
+from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
-from kivy.metrics import dp
-from kivymd.app import MDApp
 from config.conexao import *
 from config.conexao_local import *
 from kivymd.uix.pickers import MDDatePicker
 from kivy.graphics import Color, Rectangle
+from os.path import expanduser, join
 import shutil
 import os
 import logging
@@ -219,6 +217,10 @@ class TelaSelecionarImagem(BaseScreen, Widget):
                 print(f"Erro ao copiar a imagem: {e}")
     
 class Learny(MDApp):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Definindo o caminho da área de trabalho no momento da inicialização
+        self.desktop_path = join(expanduser("~"), "Desktop")
     def build(self):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()

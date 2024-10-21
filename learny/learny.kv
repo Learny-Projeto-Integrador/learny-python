@@ -11,8 +11,8 @@ WindowManager:
         # Logo
         Image:
             source: 'assets/imagens/logo-learny.png'
-            size_hint: (0.5, 0.3)
-            pos_hint: {'center_x': 0.5, 'top': 0.92}
+            size_hint: (0.4, 0.2)
+            pos_hint: {'center_x': 0.5, 'top': 0.90}
 
         # Agrupando os Títulos em um BoxLayout
         MDBoxLayout:
@@ -48,7 +48,7 @@ WindowManager:
             size_hint: 0.8, None
             height: 80
             spacing: 20
-            pos_hint: {'center_x': 0.5, 'top': 0.40}
+            pos_hint: {'center_x': 0.5, 'top': 0.42}
 
             MDTextField:
                 id: txt_usuario
@@ -133,15 +133,15 @@ WindowManager:
                 height: self.texture_size[1]
 
         MDCard:
-            size_hint: (0.28, 0.18)
-            pos_hint: {'center_x': 0.5, 'y': 0.63}
+            size_hint: (0.3, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.62}
             radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
             elevation: 0
 
             FloatLayout:  # Empilha a imagem e o botão
                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                     id: img_cadastro
-                    source: "seu_caminho_para_a_imagem.png"
+                    source: ""
                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                     radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
@@ -205,7 +205,7 @@ WindowManager:
             text: 'Entrar'
             icon: "assets/imagens/icon-confirmar.png"
             icon_size: "45sp"
-            pos_hint: {'center_x': 0.5, 'top': 0.27}
+            pos_hint: {'center_x': 0.5, 'top': 0.26}
             on_press: root.on_register_button_click()
 
         # Seção de cadastro agrupada em um BoxLayout
@@ -265,14 +265,14 @@ WindowManager:
                 height: self.texture_size[1]
 
         MDCard:
-            size_hint: (0.28, 0.18)
-            pos_hint: {'center_x': 0.5, 'y': 0.64}
+            size_hint: (0.3, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.62}
             radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
             elevation: 0
             
             FitImage:  # Utilizamos FitImage para ajustar a imagem ao tamanho do Card
                 id: my_image
-                source: "seu_caminho_para_a_imagem.png"
+                source: ""
                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                 radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
@@ -281,7 +281,7 @@ WindowManager:
             orientation: 'vertical'
             size_hint: (0.85, 0.3)
             spacing: 20
-            pos_hint: {'center_x': 0.5, 'y': 0.30}
+            pos_hint: {'center_x': 0.5, 'y': 0.28}
 
             canvas.before:
                 Color:
@@ -293,7 +293,7 @@ WindowManager:
 
             FileChooserIconView:
                 id: filechooser
-                path: 'C:/Users/fatec-dsm3/Desktop'  # Exemplo de caminho para a pasta de imagens do usuário
+                path: app.desktop_path  # Exemplo de caminho para a pasta de imagens do usuário
                 filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
                 size_hint: (1, 1)
                 on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
@@ -302,23 +302,23 @@ WindowManager:
             text: "Selecionar"
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
             font_size: 20
-            elevation: 1
+            elevation: 0
             size_hint: (None, None)
             width: 180
             height: 45
-            pos_hint: {'center_x': 0.5, 'y': 0.21}
+            pos_hint: {'center_x': 0.5, 'y': 0.19}
             on_press: seletor_imagem.selected(filechooser.selection)
         
         MDRaisedButton:
             text: "Voltar"
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
             font_size: 20
-            elevation: 1
+            elevation: 0
             size_hint: (None, None)
             width: 180
             height: 45
             md_bg_color: (0.5, 0.5, 0.5, 1)  # Cor de fundo do botão
-            pos_hint: {'center_x': 0.5, 'y': 0.13}
+            pos_hint: {'center_x': 0.5, 'y': 0.11}
             on_press:
                 root.manager.current = "TelaCadastro"
                 root.manager.transition.direction = "right"
