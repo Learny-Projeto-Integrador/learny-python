@@ -1,0 +1,347 @@
+WindowManager:
+    TelaLogin:
+    TelaCadastro:
+    TelaSelecionarImagem:
+    TelaBemVindo:
+    TelaHome:
+
+<TelaLogin>:
+    name: "TelaLogin"
+    MDFloatLayout:
+        # Logo
+        Image:
+            source: 'assets/imagens/logo-learny.png'
+            size_hint: (0.4, 0.2)
+            pos_hint: {'center_x': 0.5, 'top': 0.90}
+
+        # Agrupando os Títulos em um BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
+            height: self.minimum_height
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.67}
+
+            MDLabel:
+                text: "Entre na sua conta\n Learny"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDLabel:
+                text: "Faça login com suas informações de cadastro"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "18sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+        # Campos de texto agrupados em BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None
+            height: 80
+            spacing: 20
+            pos_hint: {'center_x': 0.5, 'top': 0.42}
+
+            MDTextField:
+                id: txt_usuario
+                mode: "round"
+                hint_text: "Usuário"
+                helper_text_mode: "persistent"
+                icon_left: "account"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+
+            MDTextField:
+                id: txt_senha
+                mode: "round"
+                hint_text: "Senha"
+                password: True  # Campo de senha
+                helper_text_mode: "persistent"
+                icon_left: "lock"  # Ícone de cadeado
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+
+        # Botão Entrar fora do BoxLayout, mas no FloatLayout
+        MDIconButton:
+            id: btn_entrar
+            text: 'Entrar'
+            icon: "assets/imagens/icon-confirmar.png"
+            icon_size: "45sp"
+            pos_hint: {'center_x': 0.5, 'top': 0.30}
+            on_press: root.on_enter_button_click()
+
+        # Seção de cadastro agrupada em um BoxLayout
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: self.minimum_size
+            height: '40dp'
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.175}
+
+            MDLabel:
+                text: "Sem uma conta?"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                halign: 'left'
+                size_hint_x: None
+                width: '150dp'
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+
+            MDTextButton:
+                id: btn_cadastro
+                text: "Comece aqui"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                size_hint: None, None
+                width: 140
+                height: 25
+                on_press:
+                    root.manager.current = "TelaCadastro"
+                    root.manager.transition.direction = "left"
+                theme_text_color: "Custom"
+                text_color: (0, 0, 0, 1)
+
+
+<TelaCadastro>:
+    name: "TelaCadastro"
+    MDFloatLayout:
+
+        # Agrupando os Títulos em um BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
+            height: self.minimum_height
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
+
+            MDLabel:
+                text: "Tela de Cadastro"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+        MDCard:
+            size_hint: (0.3, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.62}
+            radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+            elevation: 0
+
+            FloatLayout:  # Empilha a imagem e o botão
+                FitImage:  # A imagem será colocada primeiro, preenchendo o card
+                    id: img_cadastro
+                    source: ""
+                    size_hint: (1, 1)  # Ocupará todo o espaço do card
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                Button:
+                    id: image_button  # Adicione um id para referenciar esse botão
+                    text: "+"  # Texto centralizado com o ícone +
+                    font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                    font_size: 50
+                    color: (0.93, 0.35, 0.41, 1)  # Cor do texto
+                    size_hint: (1, 1)  # O botão vai ocupar 100% do espaço do card
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
+                    background_normal: ""  # Remove a imagem de fundo
+                    background_color: (0, 0, 0, 0)  # Torna o fundo transparente
+                    on_press:
+                        root.manager.current = "TelaSelecionarImagem"
+                        root.manager.transition.direction = "left"
+
+        # Campos de texto agrupados em BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None
+            spacing: 20
+            pos_hint: {'center_x': 0.5, 'top': 0.40}
+
+            MDTextField:
+                id: txt_usuario_cadastro
+                mode: "round"
+                hint_text: "Usuário"
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+
+            MDTextField:
+                id: txt_senha_cadastro
+                mode: "round"
+                hint_text: "Senha"
+                password: True  # Campo de senha
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+            
+            MDTextField:
+                id: txt_nome_cadastro
+                mode: "round"
+                hint_text: "Nome"
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+
+            
+            MDTextField:
+                id: txt_data_nasc_cadastro 
+                mode: "round"
+                hint_text: "Data de nascimento"
+                helper_text_mode: "persistent"
+                icon_right: "calendar"  # Ícone de calendário
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+                on_focus: if self.focus: app.show_date_picker()  # Exibe o DatePicker ao clicar
+
+        # Botão Entrar fora do BoxLayout, mas no FloatLayout
+        MDIconButton:
+            id: btn_entrar
+            text: 'Entrar'
+            icon: "assets/imagens/icon-confirmar.png"
+            icon_size: "45sp"
+            pos_hint: {'center_x': 0.5, 'top': 0.26}
+            on_press: root.on_register_button_click()
+
+        # Seção de cadastro agrupada em um BoxLayout
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: self.minimum_size
+            height: '40dp'
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.14}
+
+            MDLabel:
+                text: "Já possui uma conta?"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                halign: 'left'
+                size_hint_x: None
+                width: '170dp'
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+
+            MDTextButton:
+                id: btn_login
+                text: "Entre aqui"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                size_hint: None, None
+                width: 140
+                height: 25
+                on_press:
+                    root.manager.current = "TelaLogin"
+                    root.manager.transition.direction = "right"
+                theme_text_color: "Custom"
+                text_color: (0, 0, 0, 1)
+
+
+<TelaSelecionarImagem>:
+    id: seletor_imagem
+    MDFloatLayout:
+
+        # Agrupando os Títulos em um BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
+            height: self.minimum_height
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
+
+            MDLabel:
+                text: "Selecionar Imagem"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+        MDCard:
+            size_hint: (0.3, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.62}
+            radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+            elevation: 0
+            
+            FitImage:  # Utilizamos FitImage para ajustar a imagem ao tamanho do Card
+                id: my_image
+                source: ""
+                size_hint: (1, 1)  # Ocupará todo o espaço do card
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: (0.85, 0.3)
+            spacing: 20
+            pos_hint: {'center_x': 0.5, 'y': 0.28}
+
+            canvas.before:
+                Color:
+                    rgba: 0.2, 0.2, 0.2, 0.5  # Cor de fundo (R, G, B, Alpha)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [20, 20, 20, 20]  # Raio dos cantos (inferior esquerdo, inferior direito, superior direito, superior esquerdo)
+
+            FileChooserIconView:
+                id: filechooser
+                path: app.desktop_path  # Exemplo de caminho para a pasta de imagens do usuário
+                filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
+                size_hint: (1, 1)
+                on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
+        
+        MDRaisedButton:
+            text: "Selecionar"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            elevation: 0
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            pos_hint: {'center_x': 0.5, 'y': 0.19}
+            on_press: seletor_imagem.selected(filechooser.selection)
+        
+        MDRaisedButton:
+            text: "Voltar"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: 20
+            elevation: 0
+            size_hint: (None, None)
+            width: 180
+            height: 45
+            md_bg_color: (0.5, 0.5, 0.5, 1)  # Cor de fundo do botão
+            pos_hint: {'center_x': 0.5, 'y': 0.11}
+            on_press:
+                root.manager.current = "TelaCadastro"
+                root.manager.transition.direction = "right"
+
+<TelaBemVindo>:
+    name: "TelaHome"
+    FloatLayout:
+        Label:
+            id: lbl_transicao
+            text: ""
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: 28
+            size_hint: (0.5, 0.2)
+            halign: "center"
+            pos_hint: {'center_x': 0.5, 'y': 0.42}
+
+
+<TelaHome>:
+    name: "TelaHome"
+    FloatLayout:
+        canvas.before:
+            Color:
+                rgba: 1, 1, 1, 1  # Cor branca (RGBA)
+            Rectangle:
+                pos: self.pos
+                size: self.size
