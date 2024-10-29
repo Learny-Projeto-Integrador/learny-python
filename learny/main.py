@@ -6,6 +6,8 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
+from kivy.uix.scrollview import ScrollView
+from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from config.conexao import *
@@ -20,7 +22,9 @@ import logging
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
 # Define o tamanho da janela
-Window.size = (400, 600)
+Window.size = (400, 700)
+Window.left = 550  # Distância da janela para a esquerda da tela
+Window.top = 75   # Distância da janela para o topo da tela
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
@@ -149,12 +153,6 @@ class TelaCadastro(BaseScreen):
         self.manager.transition.direction = 'right'  # Define a direção para a transição
         self.manager.current = 'TelaLogin'  # Muda para a tela Home
 
-class TelaBemVindo(BaseScreen):
-    pass
-
-class TelaHome(Screen):
-    pass
-
 class TelaSelecionarImagem(BaseScreen, Widget):
     
     destino_imagem = None  # Variável para armazenar o caminho da imagem copiada
@@ -215,6 +213,15 @@ class TelaSelecionarImagem(BaseScreen, Widget):
 
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
+
+class TelaBemVindo(BaseScreen):
+    pass
+
+class TelaHome(Screen):
+    pass
+
+class TelaPerfil(Screen):
+    pass
     
 class Learny(MDApp):
     def __init__(self, **kwargs):
@@ -225,10 +232,11 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
+        sm.add_widget(TelaPerfil(name="TelaPerfil"))
+        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
-        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
