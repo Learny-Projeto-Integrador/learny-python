@@ -221,7 +221,11 @@ class TelaHome(Screen):
     pass
 
 class TelaPerfil(Screen):
-    pass
+    def on_switch_active(self, switch, active):
+        if active:
+            print("O switch está ativado")
+        else:
+            print("O switch está desativado")
     
 class Learny(MDApp):
     def __init__(self, **kwargs):
@@ -232,9 +236,9 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))

@@ -343,28 +343,21 @@ WindowManager:
     MDFloatLayout:
         canvas.before:
             Color:
-                rgba: 0.3, 0.3, 0.3, 1
+                rgba: 1, 1, 1, 1
             Rectangle:
                 pos: self.pos
                 size: self.size
+                source: 'assets/imagens/fundo-gradiente.png'
 
     # Layout para o retângulo branco arredondado
     MDFloatLayout:
-        canvas.before:
-            Color:
-                rgba: 1, 1, 1, 1
-            RoundedRectangle:
-                pos: self.pos[0], self.pos[1] - 110  # Ajuste vertical para a base
-                size: self.size
-                radius: [25, 25, 0, 0]  # Bordas superiores arredondadas
-
         MDLabel:
             text: "Mundos"
             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
             font_size: "25sp"
             pos_hint: {'center_x': 0.5, 'center_y': 0.77}  # Ajuste de posição conforme necessário
             theme_text_color: "Custom"
-            text_color: (0.3, 0.3, 0.3, 1)
+            text_color: (1, 1, 1, 1)
             halign: "center"  # Alinha o texto no centro
             valign: "middle"  # Alinha verticalmente no meio
             text_size: self.size  # Permite que o texto use a largura total
@@ -375,7 +368,7 @@ WindowManager:
             font_size: "22sp"
             pos_hint: {'center_x': 0.5, 'center_y': 0.69}  # Ajuste de posição conforme necessário
             theme_text_color: "Custom"
-            text_color: (0.3, 0.3, 0.3, 1)
+            text_color: (1, 1, 1, 1)
             halign: "center"  # Alinha o texto no centro
             valign: "middle"  # Alinha verticalmente no meio
             text_size: self.size  # Permite que o texto use a largura total
@@ -425,13 +418,6 @@ WindowManager:
 
     # Layout para o retângulo gradiente
     MDFloatLayout:
-        Image:
-            source: 'assets/imagens/fundo-gradiente2.png'
-            size_hint: (1, 0.7)
-            pos_hint: {'center_x': 0.5, 'top': 0.6}
-            allow_stretch: True  # Permite que a imagem seja esticada para preencher toda a largura
-            keep_ratio: False  # Desativa a proporção fixa para que ela cubra toda a largura
-
         Image:
             source: 'assets/imagens/fundo-mundo1.png'
             size_hint: (1, 0.7)
@@ -598,6 +584,9 @@ WindowManager:
                     icon: "assets/imagens/icon-voltar.png"
                     icon_size: "35sp"
                     pos_hint: {'center_x': 0.8, 'center_y': 0.75}
+                    on_press:
+                        root.manager.current = "TelaHome"
+                        root.manager.transition.direction = "right"
 
             MDBoxLayout:
                 orientation: 'vertical'
@@ -615,7 +604,7 @@ WindowManager:
                         RoundedRectangle:
                             pos: self.pos
                             size: self.size
-                            radius: [25]  # Bordas arredondadas para o "contorno"
+                            radius: [15]  # Bordas arredondadas para o "contorno"
                             source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
 
                         Color:
@@ -623,14 +612,14 @@ WindowManager:
                         RoundedRectangle:
                             size: (self.size[0] - 10, self.size[1] - 10)  # Ajuste o valor conforme necessário
                             pos: (self.x + 5, self.y + 5)  # Define a posição do retângulo interno
-                            radius: [20]  # Bordas arredondadas com raio de 10
+                            radius: [10]  # Bordas arredondadas com raio de 10
 
                         Color:
                             rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                         RoundedRectangle:
                             size: (self.size[0] - 20, self.size[1] - 20)  # Ajuste o valor conforme necessário
                             pos: (self.x + 10, self.y + 10)  # Define a posição do retângulo interno
-                            radius: [15]  # Bordas arredondadas com raio de 10
+                            radius: [5]  # Bordas arredondadas com raio de 10
                             source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
                     
                     MDBoxLayout:
@@ -665,15 +654,272 @@ WindowManager:
             MDBoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
-                height: 230  # Ajusta a altura ao conteúdo
-                canvas.before:
-                    Color:
-                        rgba: 0.5, 0.5, 0.5, 0.2
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                Image:
-                    source: 'assets/imagens/logo-learny.png'
-                    size_hint: (0.4, 0.2)
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                height: 295
+                padding: [30,15,30,10]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [50]  # Bordas arredondadas com raio de 10
+                            source: 'assets/imagens/fundo-sombra.png'  # Imagem com gradiente
 
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: (self.x + 10, self.y + 15)
+                            size: (self.size[0] - 20, self.size[1] - 30)
+                            radius: [25]  # Bordas arredondadas com raio de 10
+                    
+                    Widget:
+                        size_hint_y: None
+                        height: 15
+
+                    # BoxLayout Horizontal 1: Acessibilidade
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 60
+                        padding: [40, 0, 0, 0]
+                        spacing: 10  # Ajuste de espaçamento entre elementos
+
+                        Image:
+                            source: 'assets/imagens/icon-acesibilidade.png'
+                            size_hint: None, None
+                            size: 40, 40
+                            pos_hint: {'center_y': 0.5}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Acessibilidade"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            size_hint_x: 1  # Controle para a largura
+                            padding: [10, 0]
+
+                    Widget:
+                        size_hint_y: None
+                        height: 15
+
+                    # BoxLayout Horizontal 2: Desativar Áudio
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 60
+                        padding: [40, 0, 40, 0]
+
+                        MDLabel:
+                            size_hint_x: 0.6  # Reduz a largura da label para deixar espaço para o switch
+                            text: "Desativar Áudio"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "16sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            padding: [10, 0]
+
+                        MDSwitch:
+                            size_hint_x: 0.15  # Define a largura do switch para ocupar o espaço restante
+                            pos_hint: {"center_y": 0.3}  # Centraliza verticalmente o switch
+                            on_active: root.on_switch_active(*args)
+
+                        Widget: 
+                            size_hint_x: 0.25
+                    
+                    Widget:
+                        size_hint_y: None
+                        height: 10
+
+                    # BoxLayout Horizontal 3: Mudar Cores
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 60
+                        padding: [40, 0, 40, 0]
+
+                        MDLabel:
+                            size_hint_x: 0.6  # Reduz a largura da label para deixar espaço para o switch
+                            text: "Mudar Cores"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "16sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            padding: [10, 0]
+
+                        MDSwitch:
+                            size_hint_x: 0.15  # Define a largura do switch para ocupar o espaço restante
+                            pos_hint: {"center_y": 0.3}  # Centraliza verticalmente o switch
+                            on_active: root.on_switch_active(*args)
+
+                        Widget: 
+                            size_hint_x: 0.25
+                    
+                    Widget:
+                        size_hint_y: None
+                        height: 40
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: 140
+                padding: [30,0,30,10]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [50]  # Bordas arredondadas com raio de 10
+                            source: 'assets/imagens/fundo-sombra.png'  # Imagem com gradiente
+
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: (self.x + 10, self.y + 11)
+                            size: (self.size[0] - 20, self.size[1] - 20)
+                            radius: [25]  # Bordas arredondadas com raio de 10
+
+                    # BoxLayout Horizontal 1: Estatísticas
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 130
+                        padding: [40, 0, 0, 0]
+                        spacing: 10  # Ajuste de espaçamento entre elementos
+
+                        Image:
+                            source: 'assets/imagens/icon-estatisticas.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_y': 0.5}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Estatísticas"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            size_hint_x: 1  # Controle para a largura
+                            padding: [10, 0]
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: 140
+                padding: [30,0,30,10]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [50]  # Bordas arredondadas com raio de 10
+                            source: 'assets/imagens/fundo-sombra.png'  # Imagem com gradiente
+
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: (self.x + 10, self.y + 11)
+                            size: (self.size[0] - 20, self.size[1] - 20)
+                            radius: [25]  # Bordas arredondadas com raio de 10
+
+                    # BoxLayout Horizontal 1: Estatísticas
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 130
+                        padding: [40, 0, 0, 0]
+                        spacing: 10  # Ajuste de espaçamento entre elementos
+
+                        Image:
+                            source: 'assets/imagens/icon-sino.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_y': 0.5}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Notificações"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            size_hint_x: 1  # Controle para a largura
+                            padding: [10, 0]
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: 140
+                padding: [30,0,30,10]
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [50]  # Bordas arredondadas com raio de 10
+                            source: 'assets/imagens/fundo-sombra.png'  # Imagem com gradiente
+
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: (self.x + 10, self.y + 11)
+                            size: (self.size[0] - 20, self.size[1] - 20)
+                            radius: [25]  # Bordas arredondadas com raio de 10
+
+                    # BoxLayout Horizontal 1: Estatísticas
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        size_hint_y: None
+                        height: 130
+                        padding: [40, 0, 0, 0]
+                        spacing: 10  # Ajuste de espaçamento entre elementos
+
+                        Image:
+                            source: 'assets/imagens/icon-edit.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_y': 0.5}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Editar Perfil"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            size_hint_x: 1  # Controle para a largura
+                            padding: [10, 0]
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height  # Ajusta a altura automaticamente ao conteúdo
+
+                # Botão Entrar fora do BoxLayout, mas no FloatLayout
+                MDIconButton:
+                    id: btn_perfil
+                    icon: "assets/imagens/btn-sair.png"
+                    icon_size: "80sp"
+                    pos_hint: {'center_x': 0.5}
+                    on_press:
+                        root.manager.current = "TelaLogin"
+                        root.manager.transition.direction = "left"
