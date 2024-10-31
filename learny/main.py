@@ -63,6 +63,8 @@ class TelaLogin(BaseScreen):
                 if usuario_banco and usuario_banco['senha'] == senha:
                     self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
                     Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
+                    app = MDApp.get_running_app()
+                    app.usuario_ativo = usuario_banco
                 else:
                     self.show_popup("Erro de Login", "Usuário ou senha incorretos.")
             else:
@@ -110,7 +112,9 @@ class TelaCadastro(BaseScreen):
                 tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
 
                 # Obter o caminho da imagem copiada
-                caminho_imagem = tela_selecionar_imagem.destino_imagem
+                # Obtendo caminho relativo a partir do diretório do projeto
+                projeto_dir = os.path.dirname(os.path.abspath(__file__))
+                caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
                 
                 # Lógica de Cadastro
                 if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
@@ -162,8 +166,8 @@ class TelaSelecionarImagem(BaseScreen, Widget):
         if filename:
             try:
                 # Exibe a imagem selecionada
-                self.ids.my_image.source = filename[0]
-                self.ids.my_image.reload()  # Recarregar a imagem
+                self.ids.exibe_imagem.source = filename[0]
+                self.ids.exibe_imagem.reload()  # Recarregar a imagem
             except Exception as e:
                 print(f"Erro ao exibir a imagem: {e}")
     
@@ -217,7 +221,7 @@ class TelaSelecionarImagem(BaseScreen, Widget):
 class TelaBemVindo(BaseScreen):
     pass
 
-class TelaHome(Screen):
+class TelaHome(BaseScreen):
     pass
 
 class TelaPerfil(Screen):
@@ -226,8 +230,102 @@ class TelaPerfil(Screen):
             print("O switch está ativado")
         else:
             print("O switch está desativado")
+ 
+class TelaEditarPerfil(BaseScreen):
+    pass  
+
+class TelaEditarFotoPerfil(BaseScreen):
+    try:
+        client, db = create_local_connection()  # Conectar ao MongoDB
+        if db is not None:
+            # Buscando a coleção de usuários (no caso, a coleção "criancas")
+            criancas = db["criancas"]
+            
+            # Variáveis que armazenam os valores obtidos nos campos
+            app = MDApp.get_running_app()
+            '''
+            usuario_banco = app.usuario_ativo
+            
+            # Buscar o usuário na coleção pelo nome de usuário
+            usuario_banco = criancas.find_one({"usuario": usuario})
+            
+            # Pegar a foto do usuário ativo
+            foto = usuario_banco['foto']
+            
+            try:
+                # Exibe a imagem selecionada
+                self.ids.exibe_imagem.source = foto
+                self.ids.exibe_imagem.reload()  # Recarregar a imagem
+            except Exception as e:
+                print(f"Erro ao exibir a imagem atual do usuário ativo: {e}")
+            '''
+    except PyMongoError as e:
+        print("Erro buscar o usuário ativo:", e)
+
+    finally:
+        close_connection(client)
+    
+    destino_imagem = None  # Variável para armazenar o caminho da imagem copiada
+    
+    # Função para mostrar a imagem selecionada, sem copiar
+    def mostrar_imagem(self, filename):
+        if filename:
+            try:
+                # Exibe a imagem selecionada
+                self.ids.exibe_imagem.source = filename[0]
+                self.ids.exibe_imagem.reload()  # Recarregar a imagem
+            except Exception as e:
+                print(f"Erro ao exibir a imagem: {e}")
+    
+    # Função para copiar a imagem selecionada
+    def selected(self, filename):
+        if filename:
+            try:
+                # Caminho do arquivo original (imagem selecionada)
+                origem = filename[0]
+
+                # Diretório do projeto
+                projeto_dir = os.path.dirname(os.path.abspath(__file__))
+
+                # Define a pasta de destino para fotos-criancas dentro do diretório do projeto
+                destino_dir = os.path.join(projeto_dir, 'assets/imagens/fotos-criancas')
+
+                # Certifique-se de que o diretório de destino existe
+                if not os.path.exists(destino_dir):
+                    os.makedirs(destino_dir)
+
+                # Caminho completo do arquivo no destino
+                destino = os.path.join(destino_dir, os.path.basename(origem))
+
+                # Verificar se o arquivo já existe no destino
+                if not os.path.exists(destino):
+                    # Copiar o arquivo se ele ainda não foi copiado
+                    shutil.copy(origem, destino)
+                    print(f"Imagem copiada para: {destino}")
+                else:
+                    print(f"Arquivo já existe em: {destino}")
+
+                # Armazena o caminho da imagem copiada
+                self.destino_imagem = destino
+
+                # Acessa a tela de cadastro
+                tela_editar_perfil = self.manager.get_screen('TelaEditarPerfil')
+                # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
+                tela_cadastro.ids.img_editar_perfil.source = self.destino_imagem
+                # Remove o texto "+" do botão
+                tela_cadastro.ids.image_button.text = ""  
+                # Mantém o botão transparente e sem imagem de fundo
+                tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
+
+                # Volta para a TelaCadastro com a transição
+                self.manager.transition.direction = 'right'
+                self.manager.current = 'TelaEditarPerfil'
+
+            except Exception as e:
+                print(f"Erro ao copiar a imagem: {e}")    
     
 class Learny(MDApp):
+    usuario_ativo = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Definindo o caminho da área de trabalho no momento da inicialização
@@ -236,8 +334,10 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaEditarFotoPerfil(name="TelaEditarFotoPerfil"))
+        sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
+        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
@@ -245,6 +345,10 @@ class Learny(MDApp):
         
         return sm
 
+    def on_stop(self):
+        # Limpa a variável ao fechar o aplicativo
+        self.usuario_ativo = None
+        
     def on_save(self, instance, value, date_range):
         '''
         Events called when the "OK" dialog box button is clicked.
