@@ -108,7 +108,7 @@ class TelaCadastro(BaseScreen):
                 usuario = self.ids.txt_usuario_cadastro.text
                 senha = self.ids.txt_senha_cadastro.text
                 nome = self.ids.txt_nome_cadastro.text  # Novo campo de nome
-                data_nasc = self.ids.txt_data_nasc_cadastro.text
+                data_nasc = self.ids.txt_data_nasc.text
                 
                 # Acessar a tela de seleção de imagem através do ScreenManager
                 tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
@@ -116,7 +116,9 @@ class TelaCadastro(BaseScreen):
                 # Obter o caminho da imagem copiada
                 # Obtendo caminho relativo a partir do diretório do projeto
                 projeto_dir = os.path.dirname(os.path.abspath(__file__))
-                caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
+                caminho_imagem = None
+                if tela_selecionar_imagem.destino_imagem:
+                    caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
                 
                 # Lógica de Cadastro
                 if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
@@ -236,8 +238,9 @@ class TelaPerfil(Screen):
 class TelaEditarPerfil(BaseScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.foto_carregada = False  # Variável para controlar se a foto foi carregada
+        self.dados_carregados = False  # Variável para controlar se a foto foi carregada
         self.id_crianca = None
+        self.foto = None
         
     def on_enter(self, *args):
         # Verifica se o 'usuario_ativo' está definido
@@ -255,23 +258,24 @@ class TelaEditarPerfil(BaseScreen):
                     senha = usuario_banco["senha"]
                     nome = usuario_banco["nome"]
                     data_nasc = usuario_banco["data_de_nascimento"]
-                    foto = usuario_banco["foto"]
+                    self.foto = usuario_banco["foto"]
                     
-                    if not self.foto_carregada:
+                    if not self.dados_carregados:
                         # Exibe a imagem do usuário ativo
                         try:
-                            self.ids.img_editar_perfil.source = foto
+                            self.ids.img_editar_perfil.source = self.foto
                             self.ids.exibe_imagem.reload()  # Recarregar a imagem
                         except Exception as e:
                             print(f"Erro ao exibir a imagem: {e}")
                         
-                    # Exibe os dados do usuário ativo
-                    self.ids.txt_usuario_editar.text = usuario
-                    self.ids.txt_senha_editar.text = senha
-                    self.ids.txt_nome_editar.text = nome
-                    self.ids.txt_data_nasc_editar.text = data_nasc
-                    # Troca para True para não sobrepor a imagem que foi mudada
-                    self.foto_carregada = True
+                        # Exibe os dados do usuário ativo
+                        self.ids.txt_usuario_editar.text = usuario
+                        self.ids.txt_senha_editar.text = senha
+                        self.ids.txt_nome_editar.text = nome
+                        self.ids.txt_data_nasc.text = data_nasc
+
+                    # Troca para True para carregar apenas uma vez os dados
+                    self.dados_carregados = True
 
             except PyMongoError as e:
                 print("Erro ao buscar o usuário ativo:", e)
@@ -292,7 +296,7 @@ class TelaEditarPerfil(BaseScreen):
                 usuario = self.ids.txt_usuario_editar.text
                 senha = self.ids.txt_senha_editar.text
                 nome = self.ids.txt_nome_editar.text  # Novo campo de nome
-                data_nasc = self.ids.txt_data_nasc_editar.text
+                data_nasc = self.ids.txt_data_nasc.text
                 
                 # Acessar a tela de edição de imagem através do ScreenManager
                 tela_editar_foto_perfil = self.manager.get_screen('TelaEditarFotoPerfil')
@@ -300,7 +304,11 @@ class TelaEditarPerfil(BaseScreen):
                 # Obter o caminho da imagem copiada
                 # Obtendo caminho relativo a partir do diretório do projeto
                 projeto_dir = os.path.dirname(os.path.abspath(__file__))
-                caminho_imagem = os.path.relpath(tela_editar_foto_perfil.destino_imagem, projeto_dir)
+                caminho_imagem = None
+                if tela_editar_foto_perfil.destino_imagem:
+                    caminho_imagem = os.path.relpath(tela_editar_foto_perfil.destino_imagem, projeto_dir)
+                if caminho_imagem == None:
+                    caminho_imagem = self.foto
                 
                 # Lógica de Edição
                 if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
@@ -471,15 +479,19 @@ class Learny(MDApp):
         :param date_range: list of 'datetime.date' objects in the selected range;
         :type date_range: <class 'list'>;
         '''
-        
-        # Acessa a tela de cadastro usando o ScreenManager
-        tela_cadastro = self.root.get_screen('TelaCadastro')
-        
+             
         # Armazena a data selecionada em uma variável
         selected_date = value.strftime('%d/%m/%Y')  # Formata a data como dd/mm/yyyy
 
-        # Atualiza o texto do campo de data de nascimento na tela de cadastro
-        tela_cadastro.ids.txt_data_nasc_cadastro.text = selected_date
+        # Verifica a tela atual usando o ScreenManager
+        tela_atual = self.root.current
+
+        if tela_atual == 'TelaCadastro':
+            # Atualiza o campo de data de nascimento na tela de cadastro
+            self.root.get_screen('TelaCadastro').ids.txt_data_nasc.text = selected_date
+        elif tela_atual == 'TelaEditarPerfil':
+            # Atualiza o campo de data de nascimento na tela de edição de perfil
+            self.root.get_screen('TelaEditarPerfil').ids.txt_data_nasc.text = selected_date
         
         print(instance, value, date_range)
 
