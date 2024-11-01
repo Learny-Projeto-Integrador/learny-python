@@ -1051,26 +1051,24 @@ WindowManager:
                             size: (self.size[0] - 20, self.size[1] - 20)
                             radius: [25]  # Bordas arredondadas com raio de 10
 
-                    # BoxLayout Horizontal 1: Estatísticas
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    # Layout Estatísticas
+                    RelativeLayout:
                         size_hint_y: None
                         height: 130
-                        padding: [40, 0, 0, 0]
-                        spacing: 10  # Ajuste de espaçamento entre elementos
 
                         Image:
                             source: 'assets/imagens/icon-estatisticas.png'
                             size_hint: None, None
                             size: 50, 50
-                            pos_hint: {'center_y': 0.5}
+                            pos_hint: {'center_x': 0.15, 'center_y': 0.5}
                             allow_stretch: True
 
                         MDLabel:
                             text: "Estatísticas"
                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                             font_size: "18sp"
-                            halign: "left"
+                            halign: "center"
+                            pos_hint: {'center_x': 0.41, 'center_y': 0.5}
                             valign: "middle"
                             text_size: self.size
                             size_hint_x: 1  # Controle para a largura
@@ -1099,28 +1097,26 @@ WindowManager:
                             size: (self.size[0] - 20, self.size[1] - 20)
                             radius: [25]  # Bordas arredondadas com raio de 10
 
-                    # BoxLayout Horizontal 1: Estatísticas
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    # Layout Notificações
+                    RelativeLayout:
                         size_hint_y: None
                         height: 130
-                        padding: [40, 0, 0, 0]
-                        spacing: 10  # Ajuste de espaçamento entre elementos
 
                         Image:
                             source: 'assets/imagens/icon-sino.png'
                             size_hint: None, None
                             size: 50, 50
-                            pos_hint: {'center_y': 0.5}
+                            pos_hint: {'center_x': 0.15, 'center_y': 0.5}
                             allow_stretch: True
 
                         MDLabel:
                             text: "Notificações"
                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                             font_size: "18sp"
-                            halign: "left"
+                            halign: "center"
                             valign: "middle"
                             text_size: self.size
+                            pos_hint: {'center_x': 0.42, 'center_y': 0.5}
                             size_hint_x: 1  # Controle para a largura
                             padding: [10, 0]
 
@@ -1147,27 +1143,25 @@ WindowManager:
                             size: (self.size[0] - 20, self.size[1] - 20)
                             radius: [25]  # Bordas arredondadas com raio de 10
 
-                    # BoxLayout Horizontal 1: Estatísticas
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    # Layout Editar Perfil
+                    RelativeLayout:
                         size_hint_y: None
                         height: 130
-                        padding: [40, 0, 0, 0]
-                        spacing: 10  # Ajuste de espaçamento entre elementos
 
                         Image:
                             source: 'assets/imagens/icon-edit.png'
                             size_hint: None, None
                             size: 50, 50
-                            pos_hint: {'center_y': 0.5}
+                            pos_hint: {'center_x': 0.15, 'center_y': 0.5}
                             allow_stretch: True
 
                         MDLabel:
                             text: "Editar Perfil"
                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                             font_size: "18sp"
-                            halign: "left"
+                            halign: "center"
                             valign: "middle"
+                            pos_hint: {'center_x': 0.41, 'center_y': 0.5}
                             text_size: self.size
                             size_hint_x: 1  # Controle para a largura
                             padding: [10, 0]
@@ -1224,7 +1218,7 @@ WindowManager:
 
             FloatLayout:  # Empilha a imagem e o botão
                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                    id: img_cadastro
+                    id: img_editar_perfil
                     source: ""
                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -1232,10 +1226,6 @@ WindowManager:
 
                 Button:
                     id: image_button  # Adicione um id para referenciar esse botão
-                    text: "+"  # Texto centralizado com o ícone +
-                    font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                    font_size: 50
-                    color: (0.93, 0.35, 0.41, 1)  # Cor do texto
                     size_hint: (1, 1)  # O botão vai ocupar 100% do espaço do card
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
                     background_normal: ""  # Remove a imagem de fundo
@@ -1252,14 +1242,14 @@ WindowManager:
             pos_hint: {'center_x': 0.5, 'top': 0.37}
 
             MDTextField:
-                id: txt_usuario_cadastro
+                id: txt_usuario_editar
                 mode: "round"
                 hint_text: "Usuário"
                 helper_text_mode: "persistent"
                 line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
 
             MDTextField:
-                id: txt_senha_cadastro
+                id: txt_senha_editar
                 mode: "round"
                 hint_text: "Senha"
                 password: True  # Campo de senha
@@ -1267,14 +1257,14 @@ WindowManager:
                 line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
             
             MDTextField:
-                id: txt_nome_cadastro
+                id: txt_nome_editar
                 mode: "round"
                 hint_text: "Nome"
                 helper_text_mode: "persistent"
                 line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
 
             MDTextField:
-                id: txt_data_nasc_cadastro 
+                id: txt_data_nasc_editar
                 mode: "round"
                 hint_text: "Data de nascimento"
                 helper_text_mode: "persistent"
@@ -1354,7 +1344,7 @@ WindowManager:
                 path: app.desktop_path  # Exemplo de caminho para a pasta de imagens do usuário
                 filters: ['*.png', '*.jpg', '*.jpeg']  # Exibir apenas imagens PNG e JPEG
                 size_hint: (1, 1)
-                on_selection: seletor_imagem.mostrar_imagem(filechooser.selection)
+                on_selection: editor_imagem.mostrar_imagem(filechooser.selection)
         
         MDRaisedButton:
             text: "Selecionar"

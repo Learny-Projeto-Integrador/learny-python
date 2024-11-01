@@ -59,12 +59,14 @@ class TelaLogin(BaseScreen):
                 # Buscar o usuário na coleção pelo nome de usuário
                 usuario_banco = criancas.find_one({"usuario": usuario})
 
+                app = MDApp.get_running_app()
+                
                 # Verificar se o usuário foi encontrado e se a senha está correta
                 if usuario_banco and usuario_banco['senha'] == senha:
                     self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
                     Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
-                    app = MDApp.get_running_app()
-                    app.usuario_ativo = usuario_banco
+                    app.usuario_ativo = usuario_banco['usuario']
+                    print(app.usuario_ativo)
                 else:
                     self.show_popup("Erro de Login", "Usuário ou senha incorretos.")
             else:
@@ -147,15 +149,15 @@ class TelaCadastro(BaseScreen):
         self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
         # Conecta a função de transição ao evento de fechamento do popup
         if status == "ok":
-            self.popup.bind(on_dismiss=self.go_home_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
+            self.popup.bind(on_dismiss=self.go_login_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
         else:
             pass
         self.popup.open()
     
-    # Função para ir para a home
-    def go_home_after_popup(self, instance):
+    # Função para ir para o login
+    def go_login_after_popup(self, instance):
         self.manager.transition.direction = 'right'  # Define a direção para a transição
-        self.manager.current = 'TelaLogin'  # Muda para a tela Home
+        self.manager.current = 'TelaLogin'  # Muda para a tela de login
 
 class TelaSelecionarImagem(BaseScreen, Widget):
     
@@ -232,38 +234,150 @@ class TelaPerfil(Screen):
             print("O switch está desativado")
  
 class TelaEditarPerfil(BaseScreen):
-    pass  
-
-class TelaEditarFotoPerfil(BaseScreen):
-    try:
-        client, db = create_local_connection()  # Conectar ao MongoDB
-        if db is not None:
-            # Buscando a coleção de usuários (no caso, a coleção "criancas")
-            criancas = db["criancas"]
-            
-            # Variáveis que armazenam os valores obtidos nos campos
-            app = MDApp.get_running_app()
-            '''
-            usuario_banco = app.usuario_ativo
-            
-            # Buscar o usuário na coleção pelo nome de usuário
-            usuario_banco = criancas.find_one({"usuario": usuario})
-            
-            # Pegar a foto do usuário ativo
-            foto = usuario_banco['foto']
-            
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.foto_carregada = False  # Variável para controlar se a foto foi carregada
+        self.id_crianca = None
+        
+    def on_enter(self, *args):
+        # Verifica se o 'usuario_ativo' está definido
+        app = MDApp.get_running_app()
+        usuario = app.usuario_ativo
+        if usuario:
             try:
-                # Exibe a imagem selecionada
-                self.ids.exibe_imagem.source = foto
-                self.ids.exibe_imagem.reload()  # Recarregar a imagem
-            except Exception as e:
-                print(f"Erro ao exibir a imagem atual do usuário ativo: {e}")
-            '''
-    except PyMongoError as e:
-        print("Erro buscar o usuário ativo:", e)
+                client, db = create_local_connection()
+                if db is not None:
+                    criancas = db["criancas"]
+                    usuario_banco = criancas.find_one({"usuario": usuario})
+                    
+                    # armazena os dados vindos do banco em variáveis
+                    self.id_crianca = usuario_banco["_id"]
+                    senha = usuario_banco["senha"]
+                    nome = usuario_banco["nome"]
+                    data_nasc = usuario_banco["data_de_nascimento"]
+                    foto = usuario_banco["foto"]
+                    
+                    if not self.foto_carregada:
+                        # Exibe a imagem do usuário ativo
+                        try:
+                            self.ids.img_editar_perfil.source = foto
+                            self.ids.exibe_imagem.reload()  # Recarregar a imagem
+                        except Exception as e:
+                            print(f"Erro ao exibir a imagem: {e}")
+                        
+                    # Exibe os dados do usuário ativo
+                    self.ids.txt_usuario_editar.text = usuario
+                    self.ids.txt_senha_editar.text = senha
+                    self.ids.txt_nome_editar.text = nome
+                    self.ids.txt_data_nasc_editar.text = data_nasc
+                    # Troca para True para não sobrepor a imagem que foi mudada
+                    self.foto_carregada = True
 
-    finally:
-        close_connection(client)
+            except PyMongoError as e:
+                print("Erro ao buscar o usuário ativo:", e)
+            finally:
+                close_connection(client)
+        else:
+            print("Nenhum usuário ativo encontrado.")
+            
+    # Função onclick para o botão cadastrar
+    def on_edit_button_click(self):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção para adicionar
+                criancas = db["criancas"]
+                
+                # Variáveis que armazenam os valores obtidos nos campos
+                usuario = self.ids.txt_usuario_editar.text
+                senha = self.ids.txt_senha_editar.text
+                nome = self.ids.txt_nome_editar.text  # Novo campo de nome
+                data_nasc = self.ids.txt_data_nasc_editar.text
+                
+                # Acessar a tela de edição de imagem através do ScreenManager
+                tela_editar_foto_perfil = self.manager.get_screen('TelaEditarFotoPerfil')
+
+                # Obter o caminho da imagem copiada
+                # Obtendo caminho relativo a partir do diretório do projeto
+                projeto_dir = os.path.dirname(os.path.abspath(__file__))
+                caminho_imagem = os.path.relpath(tela_editar_foto_perfil.destino_imagem, projeto_dir)
+                
+                # Lógica de Edição
+                if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
+                    crianca = {
+                        'usuario': usuario,
+                        'senha': senha,
+                        'nome': nome,
+                        'data_de_nascimento': data_nasc,
+                        'foto': caminho_imagem
+                    }
+                    # Atualizar os dados da criança pelo ID
+                    resultado = criancas.update_one(
+                        {"_id": self.id_crianca},  # Filtro para encontrar a criança pelo ID
+                        {"$set": crianca}     # Atualiza os campos fornecidos
+                    )
+                    
+                    if resultado.modified_count > 0:
+                        # Exibir popup de sucesso
+                        self.show_popup("Dados Atualizados", "Seus dados foram atualizados com sucesso!", "ok")
+                    else:
+                        # Exibir popup se não houver mudanças (por exemplo, se os dados forem os mesmos)
+                        self.show_popup("Sem Mudanças", "Nenhuma alteração foi feita nos dados.", "nao")
+                else:
+                    # Exibir popup de erro se faltar dados
+                    self.show_popup("Erro de Edição", "Preencha todos os campos!", "nao")
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao atualizar a criança:", e)
+
+        finally:
+            close_connection(client)
+
+
+    # Função para mostrar o popup
+    def show_popup(self, title, message, status):
+        self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
+        # Conecta a função de transição ao evento de fechamento do popup
+        if status == "ok":
+            self.popup.bind(on_dismiss=self.go_login_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
+        else:
+            pass
+        self.popup.open()
+    
+    # Função para ir para o login
+    def go_login_after_popup(self, instance):
+        self.manager.transition.direction = 'right'  # Define a direção para a transição
+        self.manager.current = 'TelaLogin'  # Muda para a tela de login
+    
+
+class TelaEditarFotoPerfil(BaseScreen):    
+    def on_enter(self, *args):
+        # Verifique se o `usuario_ativo` está definido
+        app = MDApp.get_running_app()
+        usuario = app.usuario_ativo
+        if usuario:
+            # Realize operações de consulta usando `usuario`
+            try:
+                client, db = create_local_connection()
+                if db is not None:
+                    criancas = db["criancas"]
+                    usuario_banco = criancas.find_one({"usuario": usuario})
+                    foto = usuario_banco["foto"]
+                    try:
+                        # Exibe a imagem do usuário ativo
+                        self.ids.exibe_imagem.source = foto
+                        self.ids.exibe_imagem.reload()  # Recarregar a imagem
+                    except Exception as e:
+                        print(f"Erro ao exibir a imagem: {e}")
+                    
+            except PyMongoError as e:
+                print("Erro ao buscar o usuário ativo:", e)
+            finally:
+                close_connection(client)
+        else:
+            print("Nenhum usuário ativo encontrado.")
     
     destino_imagem = None  # Variável para armazenar o caminho da imagem copiada
     
@@ -308,15 +422,13 @@ class TelaEditarFotoPerfil(BaseScreen):
                 # Armazena o caminho da imagem copiada
                 self.destino_imagem = destino
 
-                # Acessa a tela de cadastro
+                # Acessa a tela de edição do perfil
                 tela_editar_perfil = self.manager.get_screen('TelaEditarPerfil')
                 # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
-                tela_cadastro.ids.img_editar_perfil.source = self.destino_imagem
-                # Remove o texto "+" do botão
-                tela_cadastro.ids.image_button.text = ""  
+                tela_editar_perfil.ids.img_editar_perfil.source = self.destino_imagem 
                 # Mantém o botão transparente e sem imagem de fundo
-                tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
-
+                tela_editar_perfil.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
+                
                 # Volta para a TelaCadastro com a transição
                 self.manager.transition.direction = 'right'
                 self.manager.current = 'TelaEditarPerfil'
@@ -325,11 +437,11 @@ class TelaEditarFotoPerfil(BaseScreen):
                 print(f"Erro ao copiar a imagem: {e}")    
     
 class Learny(MDApp):
-    usuario_ativo = None
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Definindo o caminho da área de trabalho no momento da inicialização
         self.desktop_path = join(expanduser("~"), "Desktop")
+        self.usuario_ativo = None  # Inicializa o usuário ativo como None
     def build(self):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
