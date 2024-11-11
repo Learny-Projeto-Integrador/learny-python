@@ -1,5 +1,5 @@
 # Instale as bibliotecas
-# pip install pymongo | pip install kivy | pip install pygame (ainda não está sendo usado)
+# pip install pymongo | pip install kivy | pip install kivymd | pip install pygame (ainda não está sendo usado)
 
 from kivymd.app import MDApp
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -13,6 +13,9 @@ from kivy.uix.widget import Widget
 from config.conexao import *
 from config.conexao_local import *
 from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.label import MDLabel
+from kivymd.uix.fitimage import FitImage
+from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Color, Rectangle
 from os.path import expanduser, join
 import shutil
@@ -30,7 +33,7 @@ Window.top = 75   # Distância da janela para o topo da tela
 class WindowManager(ScreenManager):
     pass
 
-class BaseScreen(Screen):
+class GradienteScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.preload_background()
@@ -43,7 +46,33 @@ class BaseScreen(Screen):
     def on_size(self, *args):
         self.bg_rect.size = self.size  # Atualiza o tamanho do retângulo quando a tela muda
 
-class TelaLogin(BaseScreen):
+class GradienteScreen2(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.preload_background()
+
+    def preload_background(self):
+        with self.canvas.before:
+            Color(1, 1, 1, 1)  # Altere para a cor desejada se precisar
+            self.bg_rect = Rectangle(source='assets/imagens/fundo-gradiente2.png', size=self.size)
+
+    def on_size(self, *args):
+        self.bg_rect.size = self.size  # Atualiza o tamanho do retângulo quando a tela muda
+
+class TelaAzul(Screen):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.preload_background()
+
+    def preload_background(self):
+        with self.canvas.before:
+            Color(0.42, 0.82, 1, 1)  # Altere para a cor desejada se precisar
+            self.bg_rect = Rectangle(size=self.size)
+
+    def on_size(self, *args):
+        self.bg_rect.size = self.size  # Atualiza o tamanho do retângulo quando a tela muda
+
+class TelaLogin(GradienteScreen):
     # Função onclick para o botão entrar
     def on_enter_button_click(self):
         try:
@@ -95,7 +124,7 @@ class TelaLogin(BaseScreen):
         self.manager.current = 'TelaHome'  # Muda para a tela Home
 
 
-class TelaCadastro(BaseScreen):
+class TelaCadastro(GradienteScreen):
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
         try:
@@ -161,7 +190,7 @@ class TelaCadastro(BaseScreen):
         self.manager.transition.direction = 'right'  # Define a direção para a transição
         self.manager.current = 'TelaLogin'  # Muda para a tela de login
 
-class TelaSelecionarImagem(BaseScreen, Widget):
+class TelaSelecionarImagem(GradienteScreen, Widget):
     
     destino_imagem = None  # Variável para armazenar o caminho da imagem copiada
     
@@ -222,10 +251,10 @@ class TelaSelecionarImagem(BaseScreen, Widget):
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
 
-class TelaBemVindo(BaseScreen):
+class TelaBemVindo(GradienteScreen):
     pass
 
-class TelaHome(BaseScreen):
+class TelaHome(GradienteScreen):
     pass
 
 class TelaPerfil(Screen):
@@ -235,7 +264,7 @@ class TelaPerfil(Screen):
         else:
             print("O switch está desativado")
  
-class TelaEditarPerfil(BaseScreen):
+class TelaEditarPerfil(GradienteScreen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.dados_carregados = False  # Variável para controlar se a foto foi carregada
@@ -360,7 +389,7 @@ class TelaEditarPerfil(BaseScreen):
         self.manager.current = 'TelaLogin'  # Muda para a tela de login
     
 
-class TelaEditarFotoPerfil(BaseScreen):    
+class TelaEditarFotoPerfil(GradienteScreen):    
     def on_enter(self, *args):
         # Verifique se o `usuario_ativo` está definido
         app = MDApp.get_running_app()
@@ -443,7 +472,25 @@ class TelaEditarFotoPerfil(BaseScreen):
 
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")    
-    
+
+class TelaAtalhos(GradienteScreen2):
+    pass  
+
+class TelaNotificacoes(GradienteScreen2):
+    def on_enter(self):
+        # Exemplo de chamada para adicionar uma imagem ao entrar na tela
+        self.adicionar_notificacao("assets/imagens/btn-conquista.png")
+        self.adicionar_notificacao("assets/imagens/btn-atividade-amarelo.png")
+        self.adicionar_notificacao("assets/imagens/btn-atividade-azul.png")
+
+    #Função para adicionar os paineis de notificação
+    def adicionar_notificacao(self, image_path):
+        # Adiciona o layout do item ao BoxLayout principal
+        self.ids.notificacoes.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+
+class TelaRanking(TelaAzul):
+    pass  
+
 class Learny(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -454,11 +501,14 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
+        sm.add_widget(TelaPerfil(name="TelaPerfil"))
+        sm.add_widget(TelaRanking(name="TelaRanking"))
+        sm.add_widget(TelaNotificacoes(name="TelaNotificacoes"))
+        sm.add_widget(TelaAtalhos(name="TelaAtalhos"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaEditarFotoPerfil(name="TelaEditarFotoPerfil"))
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
         sm.add_widget(TelaHome(name="TelaHome"))
-        sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
