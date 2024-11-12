@@ -74,6 +74,26 @@ class TelaAzul(Screen):
 
 class TelaLogin(GradienteScreen):
     # Função onclick para o botão entrar
+    def buscar_dados_banco(self, usuario_banco):
+        # Busca os dados do usuário ativo              
+        if usuario_banco:
+            return {
+                'usuario': usuario_banco["usuario"],
+                'senha': usuario_banco["senha"],
+                'nome': usuario_banco["nome"],
+                'data_de_nascimento': usuario_banco["data_de_nascimento"],
+                'foto': usuario_banco["foto"],
+                'pontos': usuario_banco["pontos"],
+                'nivel': usuario_banco["nivel"],
+                'medalhas': usuario_banco["medalhas"],
+                'fasesConcluidas': usuario_banco["fasesConcluidas"],
+                'conquistas': usuario_banco["conquistas"],
+                'missoesDiarias': usuario_banco["missoesDiarias"],
+                'notificaoes': usuario_banco["notificacoes"],
+                'progressoMundos': usuario_banco["progressoMundos"]
+            }
+        return None
+    
     def on_enter_button_click(self):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
@@ -92,12 +112,26 @@ class TelaLogin(GradienteScreen):
                 
                 # Verificar se o usuário foi encontrado e se a senha está correta
                 if usuario_banco and usuario_banco['senha'] == senha:
-                    self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
-                    Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
-                    app.usuario_ativo = usuario_banco['usuario']
-                    print(app.usuario_ativo)
-                else:
-                    self.show_popup("Erro de Login", "Usuário ou senha incorretos.")
+                    dados_usuario = self.buscar_dados_banco(usuario_banco)
+        
+                    if dados_usuario:
+                        # Passa os dados para a MainApp
+                        MDApp.get_running_app().set_dados_usuario(dados_usuario)
+                        
+                        # Atualiza os dados das telas antes da transição
+                        tela_home = app.root.get_screen("TelaHome")
+                        tela_perfil = app.root.get_screen("TelaPerfil")
+                        tela_ranking = app.root.get_screen("TelaRanking")
+                        
+                        tela_home.atualizar_dados()
+                        tela_perfil.atualizar_dados()
+                        tela_ranking.atualizar_dados()
+                        
+                        self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
+                        Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
+                    else:
+                        self.show_popup("Erro de Login", "Usuário e/ou senha inválidos!", "nao")
+                
             else:
                 print("Erro na conexão com o banco de dados.")
 
@@ -139,6 +173,9 @@ class TelaCadastro(GradienteScreen):
                 nome = self.ids.txt_nome_cadastro.text  # Novo campo de nome
                 data_nasc = self.ids.txt_data_nasc.text
                 
+                # verifica se já existe um usuário com esse nome no banco
+                buscar_existente = criancas.find_one({"usuario": usuario})
+                
                 # Acessar a tela de seleção de imagem através do ScreenManager
                 tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
 
@@ -149,22 +186,40 @@ class TelaCadastro(GradienteScreen):
                 if tela_selecionar_imagem.destino_imagem:
                     caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
                 
-                # Lógica de Cadastro
-                if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
-                    crianca = {
-                        'usuario': usuario,
-                        'senha': senha,
-                        'nome': nome,  # Novo campo de nome
-                        'data_de_nascimento': data_nasc,
-                        'foto': caminho_imagem
-                    }
-                    criancas.insert_one(crianca)
-                    
-                    # Exibir popup de sucesso
-                    self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!", "ok")
+                if buscar_existente:
+                    self.show_popup("Erro de Cadastro", "Nome de usuário já existente!", "nao")
+                
                 else:
-                    # Exibir popup de erro se faltar dados
-                    self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
+                    # Lógica de Cadastro
+                    if usuario != "" and senha != "" and nome != "" and data_nasc != "" and caminho_imagem is not None:
+                        crianca = {
+                            'usuario': usuario,
+                            'senha': senha,
+                            'nome': nome,
+                            'data_de_nascimento': data_nasc,
+                            'foto': caminho_imagem,
+                            'pontos': 0,
+                            'nivel': 0,
+                            'medalhas': 0,
+                            'fasesConcluidas': 0,
+                            'conquistas': 0,
+                            'missoesDiarias': [],
+                            'notificacoes': [],
+                            'progressoMundos': [
+                                {'mundo1': 0},
+                                {'mundo2': 0},
+                                {'mundo3': 0},
+                                {'mundo4': 0}
+                            ]
+                        }
+                        criancas.insert_one(crianca)
+                        
+                        # Exibir popup de sucesso
+                        self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!", "ok")
+                    else:
+                        # Exibir popup de erro se faltar dados
+                        self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
+                        
             else:
                 print("Erro na conexão com o banco de dados.")
 
@@ -255,9 +310,40 @@ class TelaBemVindo(GradienteScreen):
     pass
 
 class TelaHome(GradienteScreen):
-    pass
-
+    fator_progresso1 = 0
+    fator_progresso2 = 0 
+    fator_progresso3 = 0 
+    fator_progresso4 = 0  
+    
+    def atualizar_dados(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
+        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        
+        # Obtendo os valores dos mundos
+        valores_mundos = [list(mundo.values())[0] for mundo in dados_usuario["progressoMundos"]]
+        
+        # Atauliza as labels de porcentagem
+        self.ids.lbl_porc_mundo1.text = str(valores_mundos[0]) + "%"
+        self.ids.lbl_porc_mundo2.text = str(valores_mundos[1]) + "%"
+        self.ids.lbl_porc_mundo3.text = str(valores_mundos[2]) + "%"
+        self.ids.lbl_porc_mundo4.text = str(valores_mundos[3]) + "%"
+        
+        # Atualiza as barras de progresso
+        self.fator_progresso1 = (valores_mundos[0] / 100) * 0.76
+        self.fator_progresso2 = (valores_mundos[1] / 100) * 0.76
+        self.fator_progresso3 = (valores_mundos[2] / 100) * 0.76
+        self.fator_progresso4 = (valores_mundos[3] / 100) * 0.76
+        
 class TelaPerfil(Screen):
+    def atualizar_dados(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.ids.foto_perfil.source = dados_usuario["foto"]
+        self.ids.lbl_nome_perfil.text = dados_usuario["nome"]
+        self.ids.lbl_nivel.text = str(dados_usuario["nivel"])
+        self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        
     def on_switch_active(self, switch, active):
         if active:
             print("O switch está ativado")
@@ -489,9 +575,20 @@ class TelaNotificacoes(GradienteScreen2):
         self.ids.notificacoes.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
 
 class TelaRanking(TelaAzul):
-    pass  
+    def atualizar_dados(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
+        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        
+    def atualizar_ranking(self):
+            dados_usuario = MDApp.get_running_app().dados_usuario
+            self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+            self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
+            self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])  
 
 class Learny(MDApp):
+    dados_usuario = {}
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Definindo o caminho da área de trabalho no momento da inicialização
@@ -501,14 +598,15 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
+        sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaHome(name="TelaHome"))
+        
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))
         sm.add_widget(TelaNotificacoes(name="TelaNotificacoes"))
         sm.add_widget(TelaAtalhos(name="TelaAtalhos"))
-        sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaEditarFotoPerfil(name="TelaEditarFotoPerfil"))
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
-        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
@@ -517,7 +615,10 @@ class Learny(MDApp):
 
     def on_stop(self):
         # Limpa a variável ao fechar o aplicativo
-        self.usuario_ativo = None
+        self.dados_usuario = None
+        
+    def set_dados_usuario(self, dados_usuario):
+        self.dados_usuario = dados_usuario
         
     def on_save(self, instance, value, date_range):
         '''
