@@ -126,6 +126,7 @@ class TelaLogin(GradienteScreen):
                         tela_home.atualizar_dados()
                         tela_perfil.atualizar_dados()
                         tela_ranking.atualizar_dados()
+                        tela_ranking.atualizar_ranking()
                         
                         self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
                         Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
@@ -157,6 +158,105 @@ class TelaLogin(GradienteScreen):
         self.manager.transition.direction = 'left'  # Define a direção para a transição
         self.manager.current = 'TelaHome'  # Muda para a tela Home
 
+
+
+class TelaCadastroPais(GradienteScreen):
+    # Função para obtero o nível de frustração
+    def on_start(self):
+        # Inicializar as referências das checkboxes
+        self.checkboxes = []
+
+    def register_checkbox(self, checkbox):
+        # Armazena cada checkbox para acesso posterior
+        self.checkboxes.append(checkbox)
+
+    def check_box_click(self, checkbox, is_active, level):
+        # Converte o nível para um índice (começando de zero)
+        level_index = int(level) - 1
+
+        # Se o checkbox clicado está ativo, ativa todos até o nível atual
+        if is_active:
+            for i in range(level_index + 1):
+                self.checkboxes[i].active = True
+        else:
+            # Desmarca todos os checkboxes após o nível selecionado
+            for i in range(level_index + 1, len(self.checkboxes)):
+                self.checkboxes[i].active = False
+
+    # Função onclick para o botão cadastrar
+    def on_register_button_click(self):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção para adicionar
+                pais = db["pais"]
+                
+                # Variáveis que armazenam os valores obtidos nos campos
+                usuario = self.ids.txt_usuario_cadastro.text
+                senha = self.ids.txt_senha_cadastro.text
+                nome = self.ids.txt_nome_cadastro.text  # Novo campo de nome
+                email = self.ids.txt_nome_cadastro.text  # Novo campo de nome
+                data_nasc = self.ids.txt_data_nasc.text
+                
+                # verifica se já existe um usuário com esse nome no banco
+                buscar_existente = pais.find_one({"usuario": usuario})
+                
+                # Acessar a tela de seleção de imagem através do ScreenManager
+                tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
+
+                # Obter o caminho da imagem copiada
+                # Obtendo caminho relativo a partir do diretório do projeto
+                projeto_dir = os.path.dirname(os.path.abspath(__file__))
+                caminho_imagem = None
+                if tela_selecionar_imagem.destino_imagem:
+                    caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
+                
+                if buscar_existente:
+                    self.show_popup("Erro de Cadastro", "Nome de usuário já existente!", "nao")
+                
+                else:
+                    # Lógica de Cadastro
+                    if usuario != "" and senha != "" and nome != "" and email != "" and data_nasc != "" and caminho_imagem is not None:
+                        pai = {
+                            'usuario': usuario,
+                            'senha': senha,
+                            'nome': nome,
+                            'email': email,
+                            'data_de_nascimento': data_nasc,
+                            'foto': caminho_imagem,
+                        }
+                        pais.insert_one(pai)
+                        
+                        # Exibir popup de sucesso
+                        self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!", "ok")
+                    else:
+                        # Exibir popup de erro se faltar dados
+                        self.show_popup("Erro de Cadastro", "Preencha todos os campos!", "nao")
+                        
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao cadastrar o pai:", e)
+
+        finally:
+            close_connection(client)
+
+
+    # Função para mostrar o popup
+    def show_popup(self, title, message, status):
+        self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
+        # Conecta a função de transição ao evento de fechamento do popup
+        if status == "ok":
+            self.popup.bind(on_dismiss=self.go_login_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
+        else:
+            pass
+        self.popup.open()
+    
+    # Função para ir para o login
+    def go_login_after_popup(self, instance):
+        self.manager.transition.direction = 'right'  # Define a direção para a transição
+        self.manager.current = 'TelaLogin'  # Muda para a tela de login
 
 class TelaCadastro(GradienteScreen):
     # Função onclick para o botão cadastrar
@@ -582,10 +682,32 @@ class TelaRanking(TelaAzul):
         self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
         
     def atualizar_ranking(self):
-            dados_usuario = MDApp.get_running_app().dados_usuario
-            self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
-            self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
-            self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])  
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                criancas = db["criancas"]
+                
+                # Ordenando as crianças por pontos em ordem decrescente e limitando a 7 resultados
+                top_criancas = list(criancas.find().sort("pontos", -1).limit(7))
+                
+                # Iterando sobre os resultados e atualizando a interface
+                for i, crianca in enumerate(top_criancas):
+                    # Exibindo a foto apenas para os três primeiros colocados
+                    if i < 3:
+                        self.ids[f'img_rank{i+1}'].source = crianca["foto"]
+                    
+                    # Atualizando nome e pontos para os 7 primeiros colocados
+                    self.ids[f'lbl_nome_rank{i+1}'].text = crianca["nome"]
+                    self.ids[f'lbl_pts_rank{i+1}'].text = str(crianca["pontos"])
+                    
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao atualizar o ranking:", e)
+
+        finally:
+            close_connection(client)
 
 class Learny(MDApp):
     dados_usuario = {}
@@ -598,9 +720,9 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
+        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaHome(name="TelaHome"))
-        
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))
         sm.add_widget(TelaNotificacoes(name="TelaNotificacoes"))

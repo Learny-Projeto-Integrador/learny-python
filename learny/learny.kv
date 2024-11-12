@@ -1,5 +1,6 @@
 WindowManager:
     TelaLogin:
+    TelaCadastroPais:
     TelaCadastro:
     TelaSelecionarImagem:
     TelaBemVindo:
@@ -10,6 +11,12 @@ WindowManager:
     TelaAtalhos:
     TelaNotificacoes:
     TelaRanking:
+
+<Check@MDCheckbox>:
+    group: 'group'
+    size_hint: None, None
+    size: dp(48), dp(48)
+    on_active: root.check_box_click(self, self.active, self.id)
 
 <TelaLogin>:
     name: "TelaLogin"
@@ -115,6 +122,182 @@ WindowManager:
                 theme_text_color: "Custom"
                 text_color: (0, 0, 0, 1)
 
+
+<TelaCadastroPais>:
+    name: "TelaCadastroPais"
+    MDFloatLayout:
+
+        # Agrupando os Títulos em um BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
+            height: self.minimum_height
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.94}
+
+            MDLabel:
+                text: "Tela de Cadastro Pais"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "24sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+        MDCard:
+            size_hint: (0.33, 0.2)
+            pos_hint: {'center_x': 0.5, 'y': 0.67}
+            radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+            elevation: 0
+
+            FloatLayout:  # Empilha a imagem e o botão
+                FitImage:  # A imagem será colocada primeiro, preenchendo o card
+                    id: img_cadastro
+                    source: ""
+                    size_hint: (1, 1)  # Ocupará todo o espaço do card
+                    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                    radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                Button:
+                    id: image_button  # Adicione um id para referenciar esse botão
+                    text: "+"  # Texto centralizado com o ícone +
+                    font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                    font_size: 50
+                    color: (0.93, 0.35, 0.41, 1)  # Cor do texto
+                    size_hint: (1, 1)  # O botão vai ocupar 100% do espaço do card
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
+                    background_normal: ""  # Remove a imagem de fundo
+                    background_color: (0, 0, 0, 0)  # Torna o fundo transparente
+                    on_press:
+                        root.manager.current = "TelaSelecionarImagem"
+                        root.manager.transition.direction = "left"
+
+        # Campos de texto agrupados em BoxLayout
+        MDBoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.8, None
+            spacing: 20
+            pos_hint: {'center_x': 0.5, 'top': 0.3}
+
+            MDTextField:
+                id: txt_usuario_cadastro
+                mode: "round"
+                hint_text: "Usuário"
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+
+            MDTextField:
+                id: txt_senha_cadastro
+                mode: "round"
+                hint_text: "Senha"
+                password: True  # Campo de senha
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+            
+            MDTextField:
+                id: txt_nome_cadastro
+                mode: "round"
+                hint_text: "Nome"
+                helper_text_mode: "persistent"
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+     
+            MDTextField:
+                id: txt_data_nasc 
+                mode: "round"
+                hint_text: "Data de nascimento"
+                helper_text_mode: "persistent"
+                icon_right: "calendar"  # Ícone de calendário
+                line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
+                on_focus: if self.focus: app.show_date_picker()  # Exibe o DatePicker ao clicar
+
+            MDLabel:
+                text: "Nível de Frustração"
+                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                font_size: "16sp"
+                halign: "center"
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+                size_hint_y: None
+                height: self.texture_size[1]
+
+            MDCard:
+                size_hint_y: None
+                height: 100
+                radius: [35]  # Definindo os cantos arredondados
+                elevation: 1
+                shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_x: 1
+                    padding: [40,0,40,0]
+
+                    Check:
+                        id: '1'
+                        on_parent: root.register_checkbox(self)
+                        pos_hint: {'center_y': .5}
+                    
+                    Check:
+                        id: '2'
+                        on_parent: root.register_checkbox(self)
+                        pos_hint: {'center_y': .5}
+                    
+                    Check:
+                        id: '3'
+                        on_parent: root.register_checkbox(self)
+                        pos_hint: {'center_y': .5}
+                    
+                    Check:
+                        id: '4'
+                        on_parent: root.register_checkbox(self)
+                        pos_hint: {'center_y': .5}
+                    
+                    Check:
+                        id: '5'
+                        on_parent: root.register_checkbox(self)
+                        pos_hint: {'center_y': .5}
+
+        # Botão Cadastrar fora do BoxLayout, mas no FloatLayout
+        MDIconButton:
+            id: btn_cadastrar
+            icon: "assets/imagens/icon-confirmar.png"
+            icon_size: "45sp"
+            pos_hint: {'center_x': 0.5, 'top': 0.18}
+            on_press: root.on_register_button_click()
+
+        # Seção de cadastro agrupada em um BoxLayout
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint: None, None
+            size: self.minimum_size
+            height: '40dp'
+            spacing: 10
+            pos_hint: {'center_x': 0.5, 'top': 0.08}
+
+            MDLabel:
+                text: "Já possui uma conta?"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                halign: 'left'
+                size_hint_x: None
+                width: '170dp'
+                theme_text_color: "Custom"
+                text_color: (1, 1, 1, 1)
+
+            MDTextButton:
+                id: btn_login
+                text: "Entre aqui"
+                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                font_size: "15sp"
+                size_hint: None, None
+                width: 140
+                height: 25
+                on_press:
+                    root.manager.current = "TelaLogin"
+                    root.manager.transition.direction = "right"
+                theme_text_color: "Custom"
+                text_color: (0, 0, 0, 1)
 
 <TelaCadastro>:
     name: "TelaCadastro"
@@ -1888,7 +2071,7 @@ WindowManager:
 
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                    id: img_cadastro
+                                    id: img_rank1
                                     source: "assets/imagens/fotos-criancas/joana.jpg"
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -1926,6 +2109,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.1, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_nome_rank1
                                     text: "Joana"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -1935,6 +2119,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.69, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_pts_rank1
                                     text: "700"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -1975,7 +2160,7 @@ WindowManager:
 
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                    id: img_cadastro
+                                    id: img_rank2
                                     source: "assets/imagens/fotos-criancas/emanoela_foto_menor.jpg"
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -2013,6 +2198,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.1, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_nome_rank2
                                     text: "Emanoela"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -2022,6 +2208,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.69, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_pts_rank2
                                     text: "700"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -2062,7 +2249,7 @@ WindowManager:
 
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                    id: img_cadastro
+                                    id: img_rank3
                                     source: "assets/imagens/fotos-criancas/enzo_foto_menor.jpg"
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -2100,6 +2287,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.1, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_nome_rank3
                                     text: "Enzo"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -2109,6 +2297,7 @@ WindowManager:
                                     pos_hint: {"center_x": 0.69, "center_y": 0.5}  # Centraliza horizontalmente
 
                                 MDLabel:
+                                    id: lbl_pts_rank3
                                     text: "700"
                                     font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                     font_size: "16sp"
@@ -2178,7 +2367,6 @@ WindowManager:
 
                                         FloatLayout:  # Empilha a imagem e o botão
                                             FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                                id: img_cadastro
                                                 source: "assets/imagens/icon-circulo-rank.png"
                                                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                                                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -2196,6 +2384,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_nome_rank4
                                         text: "Viego Silva"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2207,6 +2396,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_pts_rank4
                                         text: "700"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2254,14 +2444,13 @@ WindowManager:
 
                                         FloatLayout:  # Empilha a imagem e o botão
                                             FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                                id: img_cadastro
                                                 source: "assets/imagens/icon-circulo-rank.png"
                                                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                                                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                                 radius: [100]  # Aplica o arredondamento também na imagem
 
                                     MDLabel:
-                                        text: "4°"
+                                        text: "5°"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "20sp"
                                         theme_text_color: "Custom"
@@ -2272,6 +2461,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_nome_rank5
                                         text: "Viego Silva"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2283,6 +2473,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_pts_rank5
                                         text: "700"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2331,14 +2522,13 @@ WindowManager:
 
                                         FloatLayout:  # Empilha a imagem e o botão
                                             FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                                id: img_cadastro
                                                 source: "assets/imagens/icon-circulo-rank.png"
                                                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                                                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                                 radius: [100]  # Aplica o arredondamento também na imagem
 
                                     MDLabel:
-                                        text: "4°"
+                                        text: "6°"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "20sp"
                                         theme_text_color: "Custom"
@@ -2349,6 +2539,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_nome_rank6
                                         text: "Viego Silva"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2360,6 +2551,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_pts_rank6
                                         text: "700"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2408,14 +2600,13 @@ WindowManager:
 
                                         FloatLayout:  # Empilha a imagem e o botão
                                             FitImage:  # A imagem será colocada primeiro, preenchendo o card
-                                                id: img_cadastro
                                                 source: "assets/imagens/icon-circulo-rank.png"
                                                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                                                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                                 radius: [100]  # Aplica o arredondamento também na imagem
 
                                     MDLabel:
-                                        text: "4°"
+                                        text: "7°"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "20sp"
                                         theme_text_color: "Custom"
@@ -2426,6 +2617,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_nome_rank7
                                         text: "Viego Silva"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
@@ -2437,6 +2629,7 @@ WindowManager:
                                         pos_hint: {"center_y": 0.5}  # Centraliza horizontalmente
 
                                     MDLabel:
+                                        id: lbl_pts_rank7 
                                         text: "700"
                                         font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                         font_size: "16sp"
