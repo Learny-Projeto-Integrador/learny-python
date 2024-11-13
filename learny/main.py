@@ -204,6 +204,7 @@ class TelaLogin(GradienteScreen):
 class TelaCadastroPais(GradienteScreen):
     # Define o nível de frustração que vai ser cadastrado
     nivel_frustracao = None
+    id_pai_cadastro = None
     # Função para obter os nível de frustração clicados
     def check_box_click(self, checkbox, valor, nivel):
         if valor:  # Se o checkbox está ativo
@@ -216,6 +217,7 @@ class TelaCadastroPais(GradienteScreen):
             if db is not None:
                 # Buscando a coleção para adicionar
                 pais = db["pais"]
+                criancas = db["criancas"]
                 
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario_cadastro.text
@@ -224,7 +226,8 @@ class TelaCadastroPais(GradienteScreen):
                 email = self.ids.txt_email_cadastro.text  # Novo campo de nome
                 
                 # verifica se já existe um usuário com esse nome no banco
-                buscar_existente = pais.find_one({"usuario": usuario})
+                buscar_existente_pais = pais.find_one({"usuario": usuario})
+                buscar_existente_criancas = criancas.find_one({"usuario": usuario})
                 
                 # Acessar a tela de seleção de imagem através do ScreenManager
                 tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
@@ -236,7 +239,7 @@ class TelaCadastroPais(GradienteScreen):
                 if tela_selecionar_imagem.destino_imagem:
                     caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
                 
-                if buscar_existente:
+                if buscar_existente_pais or buscar_existente_criancas:
                     self.show_popup("Erro de Cadastro", "Nome de usuário já existente!", "nao")
                 
                 else:
@@ -254,7 +257,8 @@ class TelaCadastroPais(GradienteScreen):
                             'notificacoes': [],
                             'frustracaoCrianca': self.nivel_frustracao
                         }
-                        pais.insert_one(pai)
+                        resultado_insercao = pais.insert_one(pai)
+                        self.id_pai_cadastro = resultado_insercao.inserted_id  # Obter o ID do pai recém-cadastrado
                         
                         # Exibir popup de sucesso
                         self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!", "ok")
@@ -277,7 +281,7 @@ class TelaCadastroPais(GradienteScreen):
         self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
         # Conecta a função de transição ao evento de fechamento do popup
         if status == "ok":
-            self.popup.bind(on_dismiss=self.go_filho_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
+            self.popup.bind(on_dismiss=self.go_filho_after_popup) # Se deu certo o cadastro ele vai para o cadastro filho ao fechar o popup
         else:
             pass
         self.popup.open()
@@ -285,9 +289,12 @@ class TelaCadastroPais(GradienteScreen):
     # Função para ir para o login
     def go_filho_after_popup(self, instance):
         self.manager.transition.direction = 'left'  # Define a direção para a transição
-        self.manager.current = 'TelaCadastro'  # Muda para a tela de login
+        tela_cadastro_filho = self.manager.get_screen('TelaCadastro')
+        tela_cadastro_filho.id_pai = self.id_pai_cadastro  # Define o id do pai na tela do filho
+        self.manager.current = 'TelaCadastro'  # Muda para a tela de cadastro dos filhos
 
 class TelaCadastro(GradienteScreen):
+    id_pai = None
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
         try:
@@ -295,6 +302,7 @@ class TelaCadastro(GradienteScreen):
             if db is not None:
                 # Buscando a coleção para adicionar
                 criancas = db["criancas"]
+                pais = db["pais"]
                 
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario_cadastro.text
@@ -303,7 +311,8 @@ class TelaCadastro(GradienteScreen):
                 data_nasc = self.ids.txt_data_nasc.text
                 
                 # verifica se já existe um usuário com esse nome no banco
-                buscar_existente = criancas.find_one({"usuario": usuario})
+                buscar_existente_criancas = criancas.find_one({"usuario": usuario})
+                buscar_existente_pais = pais.find_one({"usuario": usuario})
                 
                 # Acessar a tela de seleção de imagem através do ScreenManager
                 tela_selecionar_imagem = self.manager.get_screen('TelaSelecionarImagem')
@@ -315,7 +324,7 @@ class TelaCadastro(GradienteScreen):
                 if tela_selecionar_imagem.destino_imagem:
                     caminho_imagem = os.path.relpath(tela_selecionar_imagem.destino_imagem, projeto_dir)
                 
-                if buscar_existente:
+                if buscar_existente_criancas or buscar_existente_pais:
                     self.show_popup("Erro de Cadastro", "Nome de usuário já existente!", "nao")
                 
                 else:
@@ -327,6 +336,7 @@ class TelaCadastro(GradienteScreen):
                             'nome': nome,
                             'data_de_nascimento': data_nasc,
                             'foto': caminho_imagem,
+                            'pai': self.id_pai,
                             'pontos': 0,
                             'nivel': 0,
                             'medalhas': 0,
@@ -775,9 +785,9 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaLogin(name="TelaLogin"))
-        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
+        '''sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))
@@ -787,7 +797,7 @@ class Learny(MDApp):
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
-        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
+        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))'''
         
         return sm
 

@@ -1440,57 +1440,74 @@ WindowManager:
 
                 Widget:
                     size_hint_x: None
-                    width: 30
+                    width: 20
                     
                 MDBoxLayout:
                     orientation: 'vertical'
                     size_hint_y: 1
+                    padding: [0, 35, 0, 20]
+                    height: 230
 
-                    MDLabel:
-                        id: lbl_nome_perfil
-                        text: "Joana"
-                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                        font_size: "24sp"
-                        theme_text_color: "Custom"
-                        text_color: (0.3, 0.3, 0.3, 1)
-                        halign: "left"  # Alinha o texto no centro
-                        valign: "bottom"  # Alinha verticalmente no meio
-                        text_size: self.size  # Permite que o texto use a largura total
-                    
-                    MDBoxLayout:
-                        orientation: 'horizontal'
+                    RelativeLayout:
                         MDLabel:
-                            text: "Lv."
+                            id: lbl_nome_pai
+                            text: "Joana"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "24sp"
+                            theme_text_color: "Custom"
+                            size_hint_y: None
+                            text_color: (0.3, 0.3, 0.3, 1)
+                            halign: "left"  # Alinha o texto no centro
+                            pos_hint: {'center_y': 0.8}
+                            text_size: self.size  # Permite que o texto use a largura total
+
+                        MDLabel:
+                            text: "You're a"
                             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
                             font_size: "18sp"
                             theme_text_color: "Custom"
                             text_color: (0.3, 0.3, 0.3, 1)
-                            size_hint_x: None
-                            width: 45
+                            size_hint_y: None
                             halign: "left"  # Alinha o texto no centro
-                            valign: "top"  # Alinha verticalmente no meio
+                            pos_hint: {'center_y': 0.47}
                             text_size: self.size  # Permite que o texto use a largura total
-                            padding: [0, 2, 10, 0]
+                        
+                        MDLabel:
+                            id: lbl_titulo_pai
+                            text: "SUPER PARENT"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            theme_text_color: "Custom"
+                            text_color: (0.93, 0.35, 0.41, 1)
+                            halign: "left"  # Alinha o texto no centro
+                            pos_hint: {'center_y': 0.7}
+                            text_size: self.size  # Permite que o texto use a largura total
+
+                        MDIconButton:
+                            id: btn_voltar
+                            icon: "assets/imagens/icon-voltar.png"
+                            icon_size: "35sp"
+                            pos_hint: {'center_x': 0.85, 'center_y': 0.87}
+                            on_press:
+                                root.manager.current = "TelaHome"
+                                root.manager.transition.direction = "right"
+
+                        MDIconButton:
+                            icon: "assets/imagens/icon-fogo-vermelho.png"
+                            icon_size: "40sp"
+                            pos_hint: {'center_x': 0.85, 'center_y': 0.32}
 
                         MDLabel:
-                            id: lbl_nivel
-                            text: "100"
+                            id: lbl_sequencia
+                            text: "5"
                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                            font_size: "20sp"
+                            font_size: "18sp"
                             theme_text_color: "Custom"
-                            text_color: (0.3, 0.3, 0.3, 1)
-                            halign: "left"  # Alinha o texto no centro
-                            valign: "top"  # Alinha verticalmente no meio
+                            halign: "center"
+                            valign: "middle"
+                            text_color: (1, 1, 1, 1)
+                            pos_hint: {'center_x': 0.848, 'center_y': 0.3}
                             text_size: self.size  # Permite que o texto use a largura total
-
-                MDIconButton:
-                    id: btn_voltar
-                    icon: "assets/imagens/icon-voltar.png"
-                    icon_size: "35sp"
-                    pos_hint: {'center_x': 0.8, 'center_y': 0.75}
-                    on_press:
-                        root.manager.current = "TelaHome"
-                        root.manager.transition.direction = "right"
 
             MDBoxLayout:
                 orientation: 'horizontal'
@@ -1829,6 +1846,7 @@ WindowManager:
                             valign: "middle"
                             text_size: self.size
                             pos_hint: {'center_x': 0.73, 'center_y': 0.8}
+
 
 <TelaEditarPerfil>:
     name: "TelaEditarPerfil"
@@ -3138,6 +3156,4 @@ WindowManager:
 
                             Widget:
                                 size_hint_y: None
-                                height: 40
-
-                    
+                                height: 40                    
