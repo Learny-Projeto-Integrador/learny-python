@@ -31,6 +31,7 @@ Window.top = 75   # Distância da janela para o topo da tela
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
+    tipo_cadastro = ""
     pass
 
 class GradienteScreen(Screen):
@@ -73,8 +74,7 @@ class TelaAzul(Screen):
         self.bg_rect.size = self.size  # Atualiza o tamanho do retângulo quando a tela muda
 
 class TelaLogin(GradienteScreen):
-    # Função onclick para o botão entrar
-    def buscar_dados_banco(self, usuario_banco):
+    def buscar_dados_crianca(self, usuario_banco):
         # Busca os dados do usuário ativo              
         if usuario_banco:
             return {
@@ -94,26 +94,47 @@ class TelaLogin(GradienteScreen):
             }
         return None
     
+    def buscar_dados_pai(self, usuario_banco):
+        # Busca os dados do usuário ativo              
+        if usuario_banco:
+            return {
+                'usuario': usuario_banco["usuario"],
+                'senha': usuario_banco["senha"],
+                'nome': usuario_banco["nome"],
+                'email': usuario_banco["email"],
+                'foto': usuario_banco["foto"],
+                'pontos': usuario_banco["pontos"],
+                'nivel': usuario_banco["nivel"],
+                'titulo': usuario_banco["titulo"],
+                'notificacoes': usuario_banco["notificacoes"],
+                'frustracaoCrianca': usuario_banco["frustracaoCrianca"]
+            }
+        return None
+    
+    # Função onclick para o botão entrar
     def on_enter_button_click(self):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
             if db is not None:
-                # Buscando a coleção de usuários (no caso, a coleção "criancas")
+                # Buscando a coleção de usuários (no caso, as coleções "criancas" e "pais")
                 criancas = db["criancas"]
+                pais = db["pais"]
                 
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario.text
                 senha = self.ids.txt_senha.text
 
                 # Buscar o usuário na coleção pelo nome de usuário
-                usuario_banco = criancas.find_one({"usuario": usuario})
+                usuario_banco_crianca = criancas.find_one({"usuario": usuario})
+                usuario_banco_pai = pais.find_one({"usuario": usuario})
 
                 app = MDApp.get_running_app()
                 
                 # Verificar se o usuário foi encontrado e se a senha está correta
-                if usuario_banco and usuario_banco['senha'] == senha:
-                    dados_usuario = self.buscar_dados_banco(usuario_banco)
-        
+                if usuario_banco_crianca and usuario_banco_crianca['senha'] == senha:
+                    dados_usuario = self.buscar_dados_crianca(usuario_banco_crianca)
+                    self.origem_usuario = 'crianca'  # Define a origem como 'crianca'
+                    
                     if dados_usuario:
                         # Passa os dados para a MainApp
                         MDApp.get_running_app().set_dados_usuario(dados_usuario)
@@ -128,10 +149,26 @@ class TelaLogin(GradienteScreen):
                         tela_ranking.atualizar_dados()
                         tela_ranking.atualizar_ranking()
                         
-                        self.go_bem_vindo(usuario_banco["nome"])  # Trocar o nome pelo nome do usuário autenticado
+                        self.go_bem_vindo(usuario_banco_crianca["nome"])  # Trocar o nome pelo nome do usuário autenticado
                         Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
                     else:
                         self.show_popup("Erro de Login", "Usuário e/ou senha inválidos!", "nao")
+
+                elif usuario_banco_pai and usuario_banco_pai['senha'] == senha:
+                    dados_usuario = self.buscar_dados_pai(usuario_banco_pai)
+                    self.origem_usuario = 'pai'  # Define a origem como 'pai'
+                    
+                    if dados_usuario:
+                        # Passa os dados para a MainApp
+                        MDApp.get_running_app().set_dados_usuario(dados_usuario)
+                        
+                        self.go_bem_vindo(usuario_banco_pai["nome"])  # Trocar o nome pelo nome do usuário autenticado
+                        Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
+                    else:
+                        self.show_popup("Erro de Login", "Usuário e/ou senha inválidos!", "nao")
+                        
+                else:
+                    print("Bug")
                 
             else:
                 print("Erro na conexão com o banco de dados.")
@@ -156,32 +193,21 @@ class TelaLogin(GradienteScreen):
     # Função para ir para a tela Home
     def go_home(self, dt):
         self.manager.transition.direction = 'left'  # Define a direção para a transição
-        self.manager.current = 'TelaHome'  # Muda para a tela Home
-
-
+        
+        # Redireciona para uma tela diferente dependendo se é 'crianca' ou 'pai'
+        if self.origem_usuario == 'crianca':
+            self.manager.current = 'TelaHome'  # Tela específica para a criança
+            
+        elif self.origem_usuario == 'pai':
+            self.manager.current = 'TelaPerfilPais'  # Tela específica para o pai
 
 class TelaCadastroPais(GradienteScreen):
-    # Função para obtero o nível de frustração
-    def on_start(self):
-        # Inicializar as referências das checkboxes
-        self.checkboxes = []
-
-    def register_checkbox(self, checkbox):
-        # Armazena cada checkbox para acesso posterior
-        self.checkboxes.append(checkbox)
-
-    def check_box_click(self, checkbox, is_active, level):
-        # Converte o nível para um índice (começando de zero)
-        level_index = int(level) - 1
-
-        # Se o checkbox clicado está ativo, ativa todos até o nível atual
-        if is_active:
-            for i in range(level_index + 1):
-                self.checkboxes[i].active = True
-        else:
-            # Desmarca todos os checkboxes após o nível selecionado
-            for i in range(level_index + 1, len(self.checkboxes)):
-                self.checkboxes[i].active = False
+    # Define o nível de frustração que vai ser cadastrado
+    nivel_frustracao = None
+    # Função para obter os nível de frustração clicados
+    def check_box_click(self, checkbox, valor, nivel):
+        if valor:  # Se o checkbox está ativo
+            self.nivel_frustracao = nivel # muda o nível de frustração de acordo com o checkbox clicado
 
     # Função onclick para o botão cadastrar
     def on_register_button_click(self):
@@ -195,8 +221,7 @@ class TelaCadastroPais(GradienteScreen):
                 usuario = self.ids.txt_usuario_cadastro.text
                 senha = self.ids.txt_senha_cadastro.text
                 nome = self.ids.txt_nome_cadastro.text  # Novo campo de nome
-                email = self.ids.txt_nome_cadastro.text  # Novo campo de nome
-                data_nasc = self.ids.txt_data_nasc.text
+                email = self.ids.txt_email_cadastro.text  # Novo campo de nome
                 
                 # verifica se já existe um usuário com esse nome no banco
                 buscar_existente = pais.find_one({"usuario": usuario})
@@ -216,14 +241,18 @@ class TelaCadastroPais(GradienteScreen):
                 
                 else:
                     # Lógica de Cadastro
-                    if usuario != "" and senha != "" and nome != "" and email != "" and data_nasc != "" and caminho_imagem is not None:
+                    if usuario != "" and senha != "" and nome != "" and email != "" and self.nivel_frustracao != None and caminho_imagem is not None:
                         pai = {
                             'usuario': usuario,
                             'senha': senha,
                             'nome': nome,
                             'email': email,
-                            'data_de_nascimento': data_nasc,
                             'foto': caminho_imagem,
+                            'pontos': 0,
+                            'nivel': 0,
+                            'titulo': '',
+                            'notificacoes': [],
+                            'frustracaoCrianca': self.nivel_frustracao
                         }
                         pais.insert_one(pai)
                         
@@ -248,15 +277,15 @@ class TelaCadastroPais(GradienteScreen):
         self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
         # Conecta a função de transição ao evento de fechamento do popup
         if status == "ok":
-            self.popup.bind(on_dismiss=self.go_login_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
+            self.popup.bind(on_dismiss=self.go_filho_after_popup) # Se deu certo o cadastro ele vai para o login ao fechar o popup
         else:
             pass
         self.popup.open()
     
     # Função para ir para o login
-    def go_login_after_popup(self, instance):
-        self.manager.transition.direction = 'right'  # Define a direção para a transição
-        self.manager.current = 'TelaLogin'  # Muda para a tela de login
+    def go_filho_after_popup(self, instance):
+        self.manager.transition.direction = 'left'  # Define a direção para a transição
+        self.manager.current = 'TelaCadastro'  # Muda para a tela de login
 
 class TelaCadastro(GradienteScreen):
     # Função onclick para o botão cadastrar
@@ -305,6 +334,8 @@ class TelaCadastro(GradienteScreen):
                             'conquistas': 0,
                             'missoesDiarias': [],
                             'notificacoes': [],
+                            'ranking': 'habilitado',
+                            'desafios': 'permitidos',
                             'progressoMundos': [
                                 {'mundo1': 0},
                                 {'mundo2': 0},
@@ -390,18 +421,34 @@ class TelaSelecionarImagem(GradienteScreen, Widget):
                 # Armazena o caminho da imagem copiada
                 self.destino_imagem = destino
 
-                # Acessa a tela de cadastro
-                tela_cadastro = self.manager.get_screen('TelaCadastro')
-                # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
-                tela_cadastro.ids.img_cadastro.source = self.destino_imagem
-                # Remove o texto "+" do botão
-                tela_cadastro.ids.image_button.text = ""  
-                # Mantém o botão transparente e sem imagem de fundo
-                tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
+                tipo_cadastro = self.manager.tipo_cadastro
+                if tipo_cadastro == "criancas":
+                    # Acessa a tela de cadastro
+                    tela_cadastro = self.manager.get_screen('TelaCadastro')
+                    # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
+                    tela_cadastro.ids.img_cadastro.source = self.destino_imagem
+                    # Remove o texto "+" do botão
+                    tela_cadastro.ids.image_button.text = ""  
+                    # Mantém o botão transparente e sem imagem de fundo
+                    tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
 
-                # Volta para a TelaCadastro com a transição
-                self.manager.transition.direction = 'right'
-                self.manager.current = 'TelaCadastro'
+                    # Volta para a TelaCadastro com a transição
+                    self.manager.transition.direction = 'right'
+                    self.manager.current = 'TelaCadastro'
+                    
+                elif tipo_cadastro == "pais":
+                    # Acessa a tela de cadastro
+                    tela_cadastro = self.manager.get_screen('TelaCadastroPais')
+                    # Atualiza a imagem dentro do MDCard (substitui a imagem no FitImage)
+                    tela_cadastro.ids.img_cadastro.source = self.destino_imagem
+                    # Remove o texto "+" do botão
+                    tela_cadastro.ids.image_button.text = ""  
+                    # Mantém o botão transparente e sem imagem de fundo
+                    tela_cadastro.ids.image_button.background_normal = ""  # Certifique-se de que o fundo continua transparente
+
+                    # Volta para a TelaCadastro com a transição
+                    self.manager.transition.direction = 'right'
+                    self.manager.current = 'TelaCadastroPais'
 
             except Exception as e:
                 print(f"Erro ao copiar a imagem: {e}")
@@ -449,6 +496,14 @@ class TelaPerfil(Screen):
             print("O switch está ativado")
         else:
             print("O switch está desativado")
+            
+class TelaPerfilPais(Screen):
+    def atualizar_dados(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.ids.foto_perfil.source = dados_usuario["foto"]
+        self.ids.lbl_nome_perfil.text = dados_usuario["nome"]
+        self.ids.lbl_nivel.text = str(dados_usuario["nivel"])
+        self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
  
 class TelaEditarPerfil(GradienteScreen):
     def __init__(self, **kwargs):
@@ -720,8 +775,9 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
+        sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
         sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))

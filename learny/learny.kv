@@ -6,6 +6,7 @@ WindowManager:
     TelaBemVindo:
     TelaHome:
     TelaPerfil:
+    TelaPerfilPais:
     TelaEditarPerfil:
     TelaEditarFotoPerfil:
     TelaAtalhos:
@@ -16,7 +17,6 @@ WindowManager:
     group: 'group'
     size_hint: None, None
     size: dp(48), dp(48)
-    on_active: root.check_box_click(self, self.active, self.id)
 
 <TelaLogin>:
     name: "TelaLogin"
@@ -117,7 +117,7 @@ WindowManager:
                 width: 140
                 height: 25
                 on_press:
-                    root.manager.current = "TelaCadastro"
+                    root.manager.current = "TelaCadastroPais"
                     root.manager.transition.direction = "left"
                 theme_text_color: "Custom"
                 text_color: (0, 0, 0, 1)
@@ -170,6 +170,7 @@ WindowManager:
                     background_normal: ""  # Remove a imagem de fundo
                     background_color: (0, 0, 0, 0)  # Torna o fundo transparente
                     on_press:
+                        root.manager.tipo_cadastro = "pais"
                         root.manager.current = "TelaSelecionarImagem"
                         root.manager.transition.direction = "left"
 
@@ -201,15 +202,13 @@ WindowManager:
                 hint_text: "Nome"
                 helper_text_mode: "persistent"
                 line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
-     
+
             MDTextField:
-                id: txt_data_nasc 
+                id: txt_email_cadastro
                 mode: "round"
-                hint_text: "Data de nascimento"
+                hint_text: "Email"
                 helper_text_mode: "persistent"
-                icon_right: "calendar"  # Ícone de calendário
                 line_color_normal: 1, 1, 1, 1  # Cor da borda quando o campo não está focado (branco)
-                on_focus: if self.focus: app.show_date_picker()  # Exibe o DatePicker ao clicar
 
             MDLabel:
                 text: "Nível de Frustração"
@@ -233,30 +232,95 @@ WindowManager:
                     size_hint_x: 1
                     padding: [40,0,40,0]
 
-                    Check:
-                        id: '1'
-                        on_parent: root.register_checkbox(self)
-                        pos_hint: {'center_y': .5}
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 100
+                        padding: [0,5,0,20]
+
+                        Check:
+                            on_active: root.check_box_click(self, self.active, "1")
+                            pos_hint: {'center_x': 0.5}
+
+                        MDLabel:
+                            text: "1"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Custom"
+                            text_color: (0.29, 0.29, 0.29, 1)
                     
-                    Check:
-                        id: '2'
-                        on_parent: root.register_checkbox(self)
-                        pos_hint: {'center_y': .5}
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 100
+                        padding: [0,5,0,20]
+
+                        Check:
+                            on_active: root.check_box_click(self, self.active, "2")
+                            pos_hint: {'center_x': 0.5}
+
+                        MDLabel:
+                            text: "2"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Custom"
+                            text_color: (0.29, 0.29, 0.29, 1)
                     
-                    Check:
-                        id: '3'
-                        on_parent: root.register_checkbox(self)
-                        pos_hint: {'center_y': .5}
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 100
+                        padding: [0,5,0,20]
+
+                        Check:
+                            on_active: root.check_box_click(self, self.active, "3")
+                            pos_hint: {'center_x': 0.5}
+
+                        MDLabel:
+                            text: "3"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Custom"
+                            text_color: (0.29, 0.29, 0.29, 1)
                     
-                    Check:
-                        id: '4'
-                        on_parent: root.register_checkbox(self)
-                        pos_hint: {'center_y': .5}
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 100
+                        padding: [0,5,0,20]
+
+                        Check:
+                            on_active: root.check_box_click(self, self.active, "4")
+                            pos_hint: {'center_x': 0.5}
+
+                        MDLabel:
+                            text: "4"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Custom"
+                            text_color: (0.29, 0.29, 0.29, 1)
                     
-                    Check:
-                        id: '5'
-                        on_parent: root.register_checkbox(self)
-                        pos_hint: {'center_y': .5}
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: 100
+                        padding: [0,5,0,20]
+
+                        Check:
+                            on_active: root.check_box_click(self, self.active, "5")
+                            pos_hint: {'center_x': 0.5}
+
+                        MDLabel:
+                            text: "5"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "16sp"
+                            halign: "center"
+                            theme_text_color: "Custom"
+                            text_color: (0.29, 0.29, 0.29, 1)
 
         # Botão Cadastrar fora do BoxLayout, mas no FloatLayout
         MDIconButton:
@@ -346,6 +410,7 @@ WindowManager:
                     background_normal: ""  # Remove a imagem de fundo
                     background_color: (0, 0, 0, 0)  # Torna o fundo transparente
                     on_press:
+                        root.manager.tipo_cadastro = "criancas"
                         root.manager.current = "TelaSelecionarImagem"
                         root.manager.transition.direction = "left"
 
@@ -1340,6 +1405,430 @@ WindowManager:
                     on_press:
                         root.manager.current = "TelaLogin"
                         root.manager.transition.direction = "left"
+
+<TelaPerfilPais>:
+    name: "TelaPerfilPais"
+    ScrollView:
+        size_hint: 1, 1
+        GridLayout:
+            cols: 1
+            size_hint_y: None
+            height: self.minimum_height  # Ajusta a altura ao conteúdo
+            
+            Widget:
+                size_hint_y: None
+                height: 20
+                
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 230  # Ajusta a altura ao conteúdo
+                padding: [25, 0, 25, 0]
+
+                MDCard:
+                    size_hint: (None, None)
+                    width: 180
+                    height: 180
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
+                    elevation: 0
+                        
+                    FitImage:  # Utilizamos FitImage para ajustar a imagem ao tamanho do Card
+                        id: foto_perfil
+                        source: "assets/imagens/fotos-criancas/joana.jpg"
+                        radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                Widget:
+                    size_hint_x: None
+                    width: 30
+                    
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: 1
+
+                    MDLabel:
+                        id: lbl_nome_perfil
+                        text: "Joana"
+                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                        font_size: "24sp"
+                        theme_text_color: "Custom"
+                        text_color: (0.3, 0.3, 0.3, 1)
+                        halign: "left"  # Alinha o texto no centro
+                        valign: "bottom"  # Alinha verticalmente no meio
+                        text_size: self.size  # Permite que o texto use a largura total
+                    
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        MDLabel:
+                            text: "Lv."
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "18sp"
+                            theme_text_color: "Custom"
+                            text_color: (0.3, 0.3, 0.3, 1)
+                            size_hint_x: None
+                            width: 45
+                            halign: "left"  # Alinha o texto no centro
+                            valign: "top"  # Alinha verticalmente no meio
+                            text_size: self.size  # Permite que o texto use a largura total
+                            padding: [0, 2, 10, 0]
+
+                        MDLabel:
+                            id: lbl_nivel
+                            text: "100"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "20sp"
+                            theme_text_color: "Custom"
+                            text_color: (0.3, 0.3, 0.3, 1)
+                            halign: "left"  # Alinha o texto no centro
+                            valign: "top"  # Alinha verticalmente no meio
+                            text_size: self.size  # Permite que o texto use a largura total
+
+                MDIconButton:
+                    id: btn_voltar
+                    icon: "assets/imagens/icon-voltar.png"
+                    icon_size: "35sp"
+                    pos_hint: {'center_x': 0.8, 'center_y': 0.75}
+                    on_press:
+                        root.manager.current = "TelaHome"
+                        root.manager.transition.direction = "right"
+
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: 60  # Ajusta a altura ao conteúdo
+                padding: [25, 5, 25, 5]
+
+                MDBoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_x: 0.35
+                    padding: [10]
+                    spacing: 6
+
+                    canvas.before:
+                        Color:
+                            rgba: 0.29, 0.29, 0.29, 1  # Cor de fundo 
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [15, 0, 0, 15]  # Raio dos cantos (inferior esquerdo, inferior direito, superior direito, superior esquerdo)
+
+                    MDLabel:
+                        text: "EXP:"
+                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                        font_size: "14sp"
+                        halign: "center"  # Alinha o texto no centro
+                        valign: "middle"  # Alinha verticalmente no meio
+                        text_size: self.size  # Permite que o texto use a largura total
+                        theme_text_color: "Custom"
+                        text_color: (1, 1, 1, 1)
+
+                    MDLabel:
+                        id: lbl_pontos
+                        text: "850"
+                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                        font_size: "14sp"
+                        halign: "left"  # Alinha o texto no centro
+                        valign: "middle"  # Alinha verticalmente no meio
+                        text_size: self.size  # Permite que o texto use a largura total
+                        theme_text_color: "Custom"
+                        text_color: (1, 1, 1, 1)
+
+                # Layout para o retângulo com contorno e bordas arredondadas
+                MDBoxLayout:
+                    orientation: 'vertical'  # Mude para 'horizontal' se preferir empilhar horizontalmente
+
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [0, 15, 15, 0]  # Raio dos cantos (inferior esquerdo, inferior direito, superior direito, superior esquerdo)
+                            source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
+
+                        Color:
+                            rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
+                        RoundedRectangle:
+                            size: (self.size[0] - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                            pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
+                            radius: [0,10,10,0]  # Bordas arredondadas com raio de 10
+
+                        Color:
+                            rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
+                        RoundedRectangle:
+                            size: (self.size[0] - 10, self.size[1] - 20)  # Ajuste o valor conforme necessário
+                            pos: (self.x, self.y + 10)  # Define a posição do retângulo interno
+                            radius: [0,5,5,0]  # Bordas arredondadas com raio de 10
+                            source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
+
+            Widget:
+                size_hint_y: None
+                height: 30
+
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                padding: [150, 0, 30, 10]
+                height: self.minimum_height
+                spacing: 10  # Espaçamento entre o card de imagem e o texto
+
+                MDCard:
+                    size_hint: None, None
+                    width: 60
+                    height: 60
+                    radius: [100]  # Cantos arredondados
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.45}
+                    elevation: 1
+                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara
+
+                    FloatLayout:
+                        FitImage:
+                            id: img_rank1
+                            source: "assets/imagens/fotos-criancas/joana.jpg"
+                            size_hint: (1, 1)  # Ocupará todo o espaço do card
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            radius: [100]  # Arredondamento na imagem
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: [10, 0]
+                    spacing: 5  # Espaço entre as labels
+
+                    MDLabel:
+                        text: "Filha:"
+                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                        font_size: "16sp"
+                        halign: "left"
+                        size_hint_y: None
+                        height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                        theme_text_color: "Custom"
+                        text_color: (0.29, 0.29, 0.29, 1)
+
+                    MDLabel:
+                        text: "Luiza Carla"
+                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                        font_size: "18sp"
+                        halign: "left"
+                        size_hint_y: None
+                        height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                        theme_text_color: "Custom"
+                        text_color: (0.29, 0.29, 0.29, 1)
+            
+            Widget:
+                size_hint_y: None
+                height: 30
+
+            # Layout Botões
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [50, 0, 50, 0]  # Esquerda, cima, direita, baixo
+                height: 130
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [38]  # Bordas arredondadas com raio de 50
+                            source: 'assets/imagens/fundo-gradiente-botoes.png'  # Imagem com gradiente
+                    
+                    MDBoxLayout:
+                        orientation: 'horizontal'
+                        padding: [30, 0, 30, 0]
+                        spacing: 20
+
+                        MDIconButton:
+                            id: btn_medalhas
+                            icon: "assets/imagens/btn-notificacao.png"
+                            icon_size: "60sp"
+                            pos_hint: {'center_y': 0.51}
+                            on_press:
+                                root.manager.current = "TelaHome"
+                                root.manager.transition.direction = "right"
+                        
+                        MDIconButton:
+                            id: btn_sair
+                            icon: "assets/imagens/btn-atv.png"
+                            icon_size: "60sp"
+                            pos_hint: {'center_y': 0.51}
+                            on_press:
+                                root.manager.current = "TelaLogin"
+                                root.manager.transition.direction = "right"
+                        
+                        MDIconButton:
+                            id: btn_ranking
+                            icon: "assets/imagens/btn-comentar.png"
+                            icon_size: "60sp"
+                            pos_hint: {'center_y': 0.51}
+                            on_press:
+                                root.manager.current = "TelaRanking"
+                                root.manager.transition.direction = "left"
+
+            Widget:
+                size_hint_y: None
+                height: 30
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [30,15,30,10]
+                height: self.minimum_height
+                
+                MDCard:
+                    size_hint_y: None
+                    height: 250
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    radius: [35]  # Definindo os cantos arredondados
+                    elevation: 1
+                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+
+                    RelativeLayout:
+                        Image:
+                            source: 'assets/imagens/icon-acesibilidade.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_x': 0.13, 'center_y': 0.8}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Contorles"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            pos_hint: {'center_x': 0.73, 'center_y': 0.8}
+
+                        MDLabel:
+                            size_hint_x: 0.6  # Reduz a largura da label para deixar espaço para o switch
+                            text: "Ranking"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "16sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            pos_hint: {'center_x': 0.38, 'center_y': 0.5}
+
+                        MDSwitch:
+                            size_hint_x: 0.15  # Define a largura do switch para ocupar o espaço restante
+                            pos_hint: {'center_x': 0.65, "center_y": 0.47}  # Centraliza verticalmente o switch
+                            on_active: root.on_switch_active(*args)
+
+                        MDLabel:
+                            size_hint_x: 0.6  # Reduz a largura da label para deixar espaço para o switch
+                            text: "Permitir Desafios"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "16sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            pos_hint: {'center_x': 0.38, 'center_y': 0.22}
+
+                        MDSwitch:
+                            size_hint_x: 0.15
+                            pos_hint: {'center_x': 0.65, "center_y": 0.18}
+                            on_active: root.on_switch_active(*args)
+            
+            MDBoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 20
+                padding: [30,15,30,10]
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    size_hint: None, None
+                    width: 250
+                    height: self.minimum_height
+                    
+                    MDCard:
+                        size_hint_y: None
+                        height: 150
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        radius: [35]  # Definindo os cantos arredondados
+                        elevation: 1
+                        shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+
+                        RelativeLayout:
+                            MDLabel:
+                                text: "Mundos Concluidos"
+                                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                                font_size: "16sp"
+                                halign: "center"
+                                valign: "top"
+                                text_size: self.size
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.33}
+
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    
+                    MDCard:
+                        size_hint_y: None
+                        height: 150
+                        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                        radius: [35]  # Definindo os cantos arredondados
+                        elevation: 1
+                        shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+
+                        RelativeLayout:
+                            MDLabel:
+                                text: "Atividades\nSemanais"
+                                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                                font_size: "16sp"
+                                halign: "center"
+                                valign: "top"
+                                text_size: self.size
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.37}
+
+                            MDLabel:
+                                text: "10"
+                                font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                                font_size: "26sp"
+                                halign: "center"
+                                valign: "middle"
+                                text_size: self.size
+                                pos_hint: {'center_x': 0.5, 'center_y': 0.28}
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [30,15,30,10]
+                height: self.minimum_height
+                
+                MDCard:
+                    size_hint_y: None
+                    height: 250
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    radius: [35]  # Definindo os cantos arredondados
+                    elevation: 1
+                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+
+                    RelativeLayout:
+                        Image:
+                            source: 'assets/imagens/icon-acesibilidade.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_x': 0.13, 'center_y': 0.8}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Medalhas"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            valign: "middle"
+                            text_size: self.size
+                            pos_hint: {'center_x': 0.73, 'center_y': 0.8}
 
 <TelaEditarPerfil>:
     name: "TelaEditarPerfil"
