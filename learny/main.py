@@ -596,11 +596,17 @@ class TelaPerfilPais(Screen):
         self.adicionar_notificacao("assets/imagens/btn-conquista.png")
         self.adicionar_notificacao("assets/imagens/btn-atividade-amarelo.png")
         self.adicionar_notificacao("assets/imagens/btn-atividade-azul.png")
+        '''self.adicionar_filho("assets/imagens/btn-cadastrar-filho.png")'''
 
     #Função para adicionar os paineis de notificação
     def adicionar_notificacao(self, image_path):
         # Adiciona o layout do item ao BoxLayout principal
         self.ids.medalhas.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+
+    #Função para adicionar os paineis de notificação
+    '''def adicionar_filho(self, image_path):
+        # Adiciona o layout do item ao BoxLayout principal
+        self.ids.filhos.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(300, 60)))'''
  
  
 class TelaEditarPerfil(GradienteScreen):
@@ -891,9 +897,9 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaLogin(name="TelaLogin"))
-        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
+        '''sm.add_widget(TelaLogin(name="TelaLogin"))
+        sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))
@@ -903,7 +909,7 @@ class Learny(MDApp):
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
-        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
+        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))'''
         
         return sm
 

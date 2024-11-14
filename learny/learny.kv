@@ -1651,80 +1651,111 @@ WindowManager:
                 size_hint_y: None
                 height: 30
 
+            # Layout Botões
             MDBoxLayout:
-                orientation: 'horizontal'
+                orientation: 'vertical'
                 size_hint_y: None
-                padding: [150, 0, 30, 10]
-                height: self.minimum_height
-                spacing: 10  # Espaçamento entre o card de imagem e o texto
-
-                MDCard:
-                    size_hint: None, None
-                    width: 60
-                    height: 60
-                    radius: [100]  # Cantos arredondados
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.45}
-                    elevation: 1
-                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara
-
-                    FloatLayout:
-                        FitImage:
-                            id: img_filho
-                            source: "assets/imagens/fotos-criancas/joana.jpg"
-                            size_hint: (1, 1)  # Ocupará todo o espaço do card
-                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
-                            radius: [100]  # Arredondamento na imagem
+                padding: [30, 0, 30, 0]  # Esquerda, cima, direita, baixo
+                height: 100
 
                 MDBoxLayout:
-                    orientation: 'vertical'
-                    size_hint_y: None
-                    height: self.minimum_height
-                    padding: [10, 0]
-                    spacing: 5  # Espaço entre as labels
+                    orientation: 'horizontal'
+                    padding: [30,0,0,0]
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [20]  # Bordas arredondadas com raio de 50
+                            source: 'assets/imagens/fundo-gradiente-botoes.png'  # Imagem com gradiente
+                    
+                    MDCard:
+                        size_hint: None, None
+                        width: 60
+                        height: 60
+                        radius: [100]  # Cantos arredondados
+                        pos_hint: {'center_y': 0.5}
+                        elevation: 0
+                        shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara
 
-                    MDLabel:
-                        text: "Filha:"
-                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                        font_size: "16sp"
-                        halign: "left"
-                        size_hint_y: None
-                        height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
-                        theme_text_color: "Custom"
-                        text_color: (0.29, 0.29, 0.29, 1)
+                        FloatLayout:
+                            FitImage:
+                                id: img_filho
+                                source: "assets/imagens/fotos-criancas/joana.jpg"
+                                size_hint: (1, 1)  # Ocupará todo o espaço do card
+                                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                                radius: [100]  # Arredondamento na imagem
 
-                    MDLabel:
-                        id: lbl_nome_filho
-                        text: "Luiza Carla"
-                        font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                        font_size: "18sp"
-                        halign: "left"
+                    Widget:
+                        size_hint_x: None
+                        width: 20
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
                         size_hint_y: None
-                        height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
-                        theme_text_color: "Custom"
-                        text_color: (0.29, 0.29, 0.29, 1)
+                        height: self.minimum_height
+                        spacing: 5  # Espaço entre as labels
+                        pos_hint: {'center_y': 0.5}
+
+                        MDLabel:
+                            text: "Filha:"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "14sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                        MDLabel:
+                            id: lbl_nome_filho
+                            text: "Luiza Carla"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                    MDIconButton:
+                        id: btn_sair
+                        icon: "assets/imagens/btn-dropdown.png"
+                        icon_size: "40sp"
+                        pos_hint: {'center_y': 0.5}
+                        on_press:
+                            root.manager.current = "TelaLogin"
+                            root.manager.transition.direction = "right"
+
+                    Widget:
+                        size_hint_x: 0.1
             
             Widget:
                 size_hint_y: None
                 height: 15
-
-            RelativeLayout:
-                size_hint_y: None
-                height: 60
-
-                MDRaisedButton:
-                    text: "Trocar Filho"
-                    font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-                    font_size: 20
-                    elevation: 0
-                    size_hint: (None, None)
-                    width: 180
-                    height: 45
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                    on_press: editor_imagem.selected(filechooser.selection)
             
+            MDBoxLayout:
+                size_hint_y: None
+                height: 50
+
+                RelativeLayout:
+                    size_hint_x: 1
+
+                    MDRaisedButton:
+                        text: "Cadastrar Filho"
+                        font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                        font_size: 20
+                        elevation: 0
+                        size_hint: (None, None)
+                        pos_hint: {'center_x': 0.5}
+                        width: 180
+                        height: 45
+                        on_press: editor_imagem.selected(filechooser.selection)
+
             Widget:
                 size_hint_y: None
-                height: 15
+                height: 30
 
             # Layout Botões
             MDBoxLayout:
