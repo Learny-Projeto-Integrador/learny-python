@@ -83,6 +83,7 @@ class TelaLogin(GradienteScreen):
                 'nome': usuario_banco["nome"],
                 'data_de_nascimento': usuario_banco["data_de_nascimento"],
                 'foto': usuario_banco["foto"],
+                'pai': usuario_banco["pai"],
                 'pontos': usuario_banco["pontos"],
                 'nivel': usuario_banco["nivel"],
                 'medalhas': usuario_banco["medalhas"],
@@ -90,6 +91,8 @@ class TelaLogin(GradienteScreen):
                 'conquistas': usuario_banco["conquistas"],
                 'missoesDiarias': usuario_banco["missoesDiarias"],
                 'notificaoes': usuario_banco["notificacoes"],
+                'ranking': usuario_banco["ranking"],
+                'desafios': usuario_banco["desafios"],
                 'progressoMundos': usuario_banco["progressoMundos"]
             }
         return None
@@ -98,6 +101,7 @@ class TelaLogin(GradienteScreen):
         # Busca os dados do usuário ativo              
         if usuario_banco:
             return {
+                'id': usuario_banco["_id"],
                 'usuario': usuario_banco["usuario"],
                 'senha': usuario_banco["senha"],
                 'nome': usuario_banco["nome"],
@@ -146,7 +150,6 @@ class TelaLogin(GradienteScreen):
                         
                         tela_home.atualizar_dados()
                         tela_perfil.atualizar_dados()
-                        tela_ranking.atualizar_dados()
                         tela_ranking.atualizar_ranking()
                         
                         self.go_bem_vindo(usuario_banco_crianca["nome"])  # Trocar o nome pelo nome do usuário autenticado
@@ -162,13 +165,14 @@ class TelaLogin(GradienteScreen):
                         # Passa os dados para a MainApp
                         MDApp.get_running_app().set_dados_usuario(dados_usuario)
                         
+                        # Atualiza os dados da tela antes da transição
+                        tela_perfil_pais = app.root.get_screen("TelaPerfilPais")
+                        tela_perfil_pais.atualizar_dados()
+                        
                         self.go_bem_vindo(usuario_banco_pai["nome"])  # Trocar o nome pelo nome do usuário autenticado
                         Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
                     else:
                         self.show_popup("Erro de Login", "Usuário e/ou senha inválidos!", "nao")
-                        
-                else:
-                    print("Bug")
                 
             else:
                 print("Erro na conexão com o banco de dados.")
@@ -488,10 +492,10 @@ class TelaHome(GradienteScreen):
         self.ids.lbl_porc_mundo4.text = str(valores_mundos[3]) + "%"
         
         # Atualiza as barras de progresso
-        self.fator_progresso1 = (valores_mundos[0] / 100) * 0.76
-        self.fator_progresso2 = (valores_mundos[1] / 100) * 0.76
-        self.fator_progresso3 = (valores_mundos[2] / 100) * 0.76
-        self.fator_progresso4 = (valores_mundos[3] / 100) * 0.76
+        self.fator_progresso1 = (valores_mundos[0] / 100)
+        self.fator_progresso2 = (valores_mundos[1] / 100)
+        self.fator_progresso3 = (valores_mundos[2] / 100)
+        self.fator_progresso4 = (valores_mundos[3] / 100)
         
 class TelaPerfil(Screen):
     def atualizar_dados(self):
@@ -508,12 +512,96 @@ class TelaPerfil(Screen):
             print("O switch está desativado")
             
 class TelaPerfilPais(Screen):
+    id_filho = None
+    def buscar_dados_crianca(self, usuario_banco):
+        # Busca os dados do usuário ativo              
+        if usuario_banco:
+            return {
+                'id': usuario_banco["_id"],
+                'nome': usuario_banco["nome"],
+                'foto': usuario_banco["foto"],
+                'pontos': usuario_banco["pontos"],
+                'nivel': usuario_banco["nivel"],
+                'medalhas': usuario_banco["medalhas"],
+                'fasesConcluidas': usuario_banco["fasesConcluidas"],
+                'ranking': usuario_banco["ranking"],
+                'conquistas': usuario_banco["conquistas"],
+                'missoesDiarias': usuario_banco["missoesDiarias"],
+                'progressoMundos': usuario_banco["progressoMundos"]
+            }
+        return None
+    
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
-        self.ids.foto_perfil.source = dados_usuario["foto"]
-        self.ids.lbl_nome_perfil.text = dados_usuario["nome"]
-        self.ids.lbl_nivel.text = str(dados_usuario["nivel"])
-        self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        id_pai = dados_usuario["id"]
+        self.ids.foto_perfil_pai.source = dados_usuario["foto"]
+        self.ids.lbl_nome_pai.text = dados_usuario["nome"]
+        # self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção para adicionar
+                criancas = db["criancas"]
+                
+                # verifica se já existe um usuário com esse nome no banco
+                buscar_filho = criancas.find_one({"pai": id_pai})
+                
+                if buscar_filho:
+                    dados_filho = self.buscar_dados_crianca(buscar_filho)
+                    self.id_filho = dados_filho["id"]
+                    self.ids.img_filho.source = dados_filho["foto"]
+                    self.ids.lbl_nome_filho.text = dados_filho["nome"]
+                    
+                    # Muda o estado do switch de acordo com a informação do banco
+                    ranking = dados_filho["ranking"]
+                    self.ids.switch_ranking.active = (ranking.lower() == "habilitado")
+                    
+                else:
+                    print("Erro")
+                        
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao buscar os dados da criança:", e)
+
+        finally:
+            close_connection(client)
+
+    def atualizar_estado_ranking(self, estado):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção para adicionar
+                criancas = db["criancas"]
+                novo_valor = "habilitado" if estado else "desabilitado"
+                criancas.update_one({"_id": self.id_filho}, {"$set": {"ranking": novo_valor}})
+        
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except PyMongoError as e:
+            print("Erro ao buscar os dados da criança:", e)
+
+        finally:
+            close_connection(client)
+        
+    def on_switch_active(self, instance, value):
+       # Atualizar o banco de dados quando o switch for alternado
+       self.atualizar_estado_ranking(value)
+       
+    def on_enter(self):
+        # Exemplo de chamada para adicionar uma imagem ao entrar na tela
+        self.adicionar_notificacao("assets/imagens/btn-conquista.png")
+        self.adicionar_notificacao("assets/imagens/btn-atividade-amarelo.png")
+        self.adicionar_notificacao("assets/imagens/btn-atividade-azul.png")
+
+    #Função para adicionar os paineis de notificação
+    def adicionar_notificacao(self, image_path):
+        # Adiciona o layout do item ao BoxLayout principal
+        self.ids.medalhas.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+ 
  
 class TelaEditarPerfil(GradienteScreen):
     def __init__(self, **kwargs):
@@ -725,7 +813,25 @@ class TelaEditarFotoPerfil(GradienteScreen):
                 print(f"Erro ao copiar a imagem: {e}")    
 
 class TelaAtalhos(GradienteScreen2):
-    pass  
+    # Função para verificar o clique no botão de ir para o ranking
+    def btn_ranking_click(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        ranking = dados_usuario["ranking"]
+        print(ranking)
+        if ranking.lower() == "habilitado":
+            self.manager.current = "TelaRanking"
+            self.manager.transition.direction = "left"
+            
+        else:
+            self.show_popup("Erro!", "Você está com o ranking desabilitado!", "erro")
+         
+    # Função para mostrar o popup
+    def show_popup(self, title, message, status):
+        self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
+        self.popup.open()
+    
+         
+         
 
 class TelaNotificacoes(GradienteScreen2):
     def on_enter(self):
@@ -785,10 +891,10 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
-        sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
-        '''sm.add_widget(TelaLogin(name="TelaLogin"))
-        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
+        sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaHome(name="TelaHome"))
+        sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
+        sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
         sm.add_widget(TelaRanking(name="TelaRanking"))
         sm.add_widget(TelaNotificacoes(name="TelaNotificacoes"))
@@ -797,7 +903,7 @@ class Learny(MDApp):
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
-        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))'''
+        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
 
