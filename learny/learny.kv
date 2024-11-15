@@ -1651,15 +1651,20 @@ WindowManager:
                 size_hint_y: None
                 height: 30
 
-            # Layout Botões
+            # Layout filhos
             MDBoxLayout:
+                id: filhos
                 orientation: 'vertical'
                 size_hint_y: None
                 padding: [30, 0, 30, 0]  # Esquerda, cima, direita, baixo
-                height: 100
+                spacing: 0
+                height: self.minimum_height
 
                 MDBoxLayout:
+                    id: painel_principal_filhos
                     orientation: 'horizontal'
+                    size_hint_y: None
+                    height: 100
                     padding: [30,0,0,0]
                     canvas.before:
                         Color:
@@ -1667,7 +1672,7 @@ WindowManager:
                         RoundedRectangle:
                             pos: self.pos
                             size: self.size
-                            radius: [20]  # Bordas arredondadas com raio de 50
+                            radius: root.radius_painel_principal
                             source: 'assets/imagens/fundo-gradiente-botoes.png'  # Imagem com gradiente
                     
                     MDCard:
@@ -1681,7 +1686,7 @@ WindowManager:
 
                         FloatLayout:
                             FitImage:
-                                id: img_filho
+                                id: img_filho_principal
                                 source: "assets/imagens/fotos-criancas/joana.jpg"
                                 size_hint: (1, 1)  # Ocupará todo o espaço do card
                                 pos_hint: {"center_x": 0.5, "center_y": 0.5}
@@ -1709,7 +1714,7 @@ WindowManager:
                             text_color: (1, 1, 1, 1)
 
                         MDLabel:
-                            id: lbl_nome_filho
+                            id: lbl_nome_filho_principal
                             text: "Luiza Carla"
                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                             font_size: "18sp"
@@ -1724,12 +1729,7 @@ WindowManager:
                         icon: "assets/imagens/btn-dropdown.png"
                         icon_size: "40sp"
                         pos_hint: {'center_y': 0.5}
-                        on_press:
-                            root.manager.current = "TelaLogin"
-                            root.manager.transition.direction = "right"
-
-                    Widget:
-                        size_hint_x: 0.1
+                        on_press: root.on_dropdown_click()
             
             Widget:
                 size_hint_y: None
@@ -1751,7 +1751,7 @@ WindowManager:
                         pos_hint: {'center_x': 0.5}
                         width: 180
                         height: 45
-                        on_press: editor_imagem.selected(filechooser.selection)
+                        on_press: root.cadastrar_filho()
 
             Widget:
                 size_hint_y: None

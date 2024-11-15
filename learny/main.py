@@ -2,6 +2,7 @@
 # pip install pymongo | pip install kivy | pip install kivymd | pip install pygame (ainda não está sendo usado)
 
 from kivymd.app import MDApp
+from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.core.window import Window
 from kivy.uix.popup import Popup
@@ -17,6 +18,8 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.fitimage import FitImage
 from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Color, Rectangle
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.properties import StringProperty, ListProperty
 from os.path import expanduser, join
 import shutil
 import os
@@ -111,7 +114,8 @@ class TelaLogin(GradienteScreen):
                 'nivel': usuario_banco["nivel"],
                 'titulo': usuario_banco["titulo"],
                 'notificacoes': usuario_banco["notificacoes"],
-                'frustracaoCrianca': usuario_banco["frustracaoCrianca"]
+                'frustracaoCrianca': usuario_banco["frustracaoCrianca"],
+                'filhoSelecionado': usuario_banco["filhoSelecionado"]
             }
         return None
     
@@ -259,7 +263,8 @@ class TelaCadastroPais(GradienteScreen):
                             'nivel': 0,
                             'titulo': '',
                             'notificacoes': [],
-                            'frustracaoCrianca': self.nivel_frustracao
+                            'frustracaoCrianca': self.nivel_frustracao,
+                            'filho_selecionado': ""
                         }
                         resultado_insercao = pais.insert_one(pai)
                         self.id_pai_cadastro = resultado_insercao.inserted_id  # Obter o ID do pai recém-cadastrado
@@ -292,9 +297,9 @@ class TelaCadastroPais(GradienteScreen):
     
     # Função para ir para o login
     def go_filho_after_popup(self, instance):
-        self.manager.transition.direction = 'left'  # Define a direção para a transição
         tela_cadastro_filho = self.manager.get_screen('TelaCadastro')
         tela_cadastro_filho.id_pai = self.id_pai_cadastro  # Define o id do pai na tela do filho
+        self.manager.transition.direction = 'left'  # Define a direção para a transição
         self.manager.current = 'TelaCadastro'  # Muda para a tela de cadastro dos filhos
 
 class TelaCadastro(GradienteScreen):
@@ -511,10 +516,85 @@ class TelaPerfil(Screen):
         else:
             print("O switch está desativado")
             
+# Definindo uma classe que representa o painel de filho
+class PainelFilho(ButtonBehavior, BoxLayout):
+    image_path = StringProperty("assets/imagens/fotos-criancas/joana.jpg")
+    nome_filho = StringProperty("Luiza Carla")
+    border_radius = ListProperty([20])  # Define o raio padrão para 20
+
+    
+# Layout corrigido com Builder.load_string()
+Builder.load_string("""
+<PainelFilho>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 100
+    padding: [30, 0, 0, 0]
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: root.border_radius
+            source: 'assets/imagens/fundo-gradiente.png'
+
+    MDCard:
+        size_hint: None, None
+        width: 60
+        height: 60
+        radius: [100]
+        pos_hint: {'center_y': 0.5}
+        elevation: 0
+        shadow_color: (0, 0, 0, 0.3)
+
+        FloatLayout:
+            FitImage:
+                source: root.image_path
+                size_hint: (1, 1)
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                radius: [100]
+
+    Widget:
+        size_hint_x: None
+        width: 20
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: 5
+        pos_hint: {'center_y': 0.5}
+
+        MDLabel:
+            text: "Filha:"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: "14sp"
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1]
+            theme_text_color: "Custom"
+            text_color: (1, 1, 1, 1)
+
+        MDLabel:
+            text: root.nome_filho
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: "18sp"
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1]
+            theme_text_color: "Custom"
+            text_color: (1, 1, 1, 1)
+""")
+    
 class TelaPerfilPais(Screen):
-    id_filho = None
+    id_pai = None
+    lista_filhos = []  # Lista para armazenar os filhos
+    filho_selecionado = ""
+    
     def buscar_dados_crianca(self, usuario_banco):
-        # Busca os dados do usuário ativo              
+        # Busca os dados do usuário ativo               
         if usuario_banco:
             return {
                 'id': usuario_banco["_id"],
@@ -533,81 +613,144 @@ class TelaPerfilPais(Screen):
     
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
-        id_pai = dados_usuario["id"]
+        self.id_pai = dados_usuario["id"]
         self.ids.foto_perfil_pai.source = dados_usuario["foto"]
         self.ids.lbl_nome_pai.text = dados_usuario["nome"]
-        # self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
+        self.filho_selecionado = dados_usuario["filhoSelecionado"]
         
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
             if db is not None:
-                # Buscando a coleção para adicionar
+                # Buscando a coleção de filhos
                 criancas = db["criancas"]
                 
-                # verifica se já existe um usuário com esse nome no banco
-                buscar_filho = criancas.find_one({"pai": id_pai})
+                # Buscando todos os filhos do pai no banco de dados
+                filhos_cursor = criancas.find({"pai": self.id_pai})
                 
-                if buscar_filho:
-                    dados_filho = self.buscar_dados_crianca(buscar_filho)
-                    self.id_filho = dados_filho["id"]
-                    self.ids.img_filho.source = dados_filho["foto"]
-                    self.ids.lbl_nome_filho.text = dados_filho["nome"]
+                # Limpa a lista de filhos antes de adicionar novos
+                self.lista_filhos.clear()
+                
+                filhos = list(filhos_cursor)  # Convertendo o cursor em uma lista
+                
+                # Loop para adicionar os filhos
+                for index, filho in enumerate(filhos):
+                    dados_filho = self.buscar_dados_crianca(filho)
+                    if dados_filho:
+                        self.lista_filhos.append(dados_filho)
+                
+                if not self.lista_filhos:
+                    print("Nenhum filho encontrado.")
                     
-                    # Muda o estado do switch de acordo com a informação do banco
-                    ranking = dados_filho["ranking"]
-                    self.ids.switch_ranking.active = (ranking.lower() == "habilitado")
-                    
-                else:
-                    print("Erro")
-                        
+                # Atualiza o painel principal com o filho selecionado
+                filho_encontrado = False
+                for i in self.lista_filhos:
+                    if i["id"] == self.filho_selecionado:
+                        self.ids.img_filho_principal.source = i["foto"]
+                        self.ids.lbl_nome_filho_principal.text = i["nome"]
+                        filho_encontrado = True
+                        break
+                
+                # Se não tiver filho selecionado, pega o primeiro filho
+                if not filho_encontrado and self.lista_filhos:
+                    self.ids.img_filho_principal.source = self.lista_filhos[0]["foto"]
+                    self.ids.lbl_nome_filho_principal.text = self.lista_filhos[0]["nome"]
+                    filho_selecionado = self.lista_filhos[0]["id"]  # Atualiza para o primeiro filho
+                
             else:
                 print("Erro na conexão com o banco de dados.")
-
         except PyMongoError as e:
             print("Erro ao buscar os dados da criança:", e)
-
         finally:
             close_connection(client)
 
-    def atualizar_estado_ranking(self, estado):
+    def atualizar_filhos_selecionado(self, id_filho):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
             if db is not None:
-                # Buscando a coleção para adicionar
-                criancas = db["criancas"]
-                novo_valor = "habilitado" if estado else "desabilitado"
-                criancas.update_one({"_id": self.id_filho}, {"$set": {"ranking": novo_valor}})
-        
+                # Atualiza o filho selecionado no banco de dados
+                pais = db["pais"]
+                pais.update_one({"_id": self.id_pai}, {"$set": {"filhoSelecionado": id_filho}})
             else:
                 print("Erro na conexão com o banco de dados.")
-
         except PyMongoError as e:
-            print("Erro ao buscar os dados da criança:", e)
-
+            print("Erro ao atualizar filho selecionado:", e)
         finally:
             close_connection(client)
-        
+
     def on_switch_active(self, instance, value):
-       # Atualizar o banco de dados quando o switch for alternado
-       self.atualizar_estado_ranking(value)
+        # Atualizar o banco de dados quando o switch for alternado
+        self.atualizar_estado_ranking(value)
        
-    def on_enter(self):
-        # Exemplo de chamada para adicionar uma imagem ao entrar na tela
-        self.adicionar_notificacao("assets/imagens/btn-conquista.png")
-        self.adicionar_notificacao("assets/imagens/btn-atividade-amarelo.png")
-        self.adicionar_notificacao("assets/imagens/btn-atividade-azul.png")
-        '''self.adicionar_filho("assets/imagens/btn-cadastrar-filho.png")'''
+    radius_painel_principal = ListProperty([20, 20, 20, 20])  # Valor padrão   
+    
+    def on_dropdown_click(self):
+        # Obtenha o layout onde os painéis filhos serão adicionados
+        layout_filhos = self.ids.filhos
+        painel_principal = self.ids.painel_principal_filhos  # Painel que sempre permanece ativo
+        
+        # Verifica se há outros widgets além do painel principal
+        if any(child != painel_principal for child in layout_filhos.children):
+            # Remove todos os painéis dinâmicos, mantendo o painel principal
+            for child in layout_filhos.children[:]:
+                if child != painel_principal:
+                    layout_filhos.remove_widget(child)
+            
+            # Reseta o radius inferior do painel principal        
+            self.radius_painel_principal = [20]        
+                
+        else:
+            # Adiciona os filhos ao painel dinâmico
+            for index, filho in enumerate(self.lista_filhos):
+                if filho["id"] != self.filho_selecionado:  # Adiciona apenas os filhos que não são o principal
+                    # Se o filho for o último, aplica a borda inferior
+                    if index == len(self.lista_filhos) - 1:
+                        radius = [0, 0, 20, 20]  # Último painel com borda inferior
+                    else:
+                        radius = [0, 0, 0, 0]  # Painéis anteriores sem borda inferior
+                    
+                    self.adicionar_painel_filho(filho["id"], filho["foto"], filho["nome"], radius)
 
-    #Função para adicionar os paineis de notificação
-    def adicionar_notificacao(self, image_path):
-        # Adiciona o layout do item ao BoxLayout principal
-        self.ids.medalhas.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+    def on_painel_filho_clicado(self, instance):
+        print(f"Painel '{instance.nome_filho}' foi clicado!")
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Atualiza o filho selecionado no banco de dados
+                crianca = db["criancas"].find_one({"nome": instance.nome_filho})
+                
+                if crianca is not None:
+                    self.atualizar_filhos_selecionado(crianca["_id"])
+                    # Atualiza a tela com o novo filho selecionado
+                    self.atualizar_dados()
+                else:
+                    print(f"Nenhum filho encontrado com o nome '{instance.nome_filho}'.")
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar filho selecionado:", e)
+        finally:
+            close_connection(client)
 
-    #Função para adicionar os paineis de notificação
-    '''def adicionar_filho(self, image_path):
-        # Adiciona o layout do item ao BoxLayout principal
-        self.ids.filhos.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(300, 60)))'''
- 
+    def adicionar_painel_filho(self, id_filho_painel, image_path, nome, radius):
+        # Cria uma nova instância de PainelFilho com imagem e nome específicos
+        painel = PainelFilho()
+        painel.id_filho = id_filho_painel
+        painel.image_path = image_path
+        painel.nome_filho = nome
+        painel.border_radius = radius  # Define bordas arredondadas nos cantos superiores
+        # Adiciona um evento de clique para o painel inteiro
+        painel.bind(on_press=self.on_painel_filho_clicado)
+        
+        # Adiciona o painel ao layout principal (exemplo: self.ids.medalhas)
+        self.ids.filhos.add_widget(painel)
+        self.radius_painel_principal = [20, 20, 0, 0]
+        
+    # Função para ir para o cadastro do filho
+    def cadastrar_filho(self):
+        tela_cadastro_filho = self.manager.get_screen('TelaCadastro')
+        tela_cadastro_filho.id_pai = self.id_pai  # Define o id do pai na tela do filho
+        self.manager.transition.direction = 'left'  # Define a direção para a transição
+        self.manager.current = 'TelaCadastro'  # Muda para a tela de cadastro dos filhos
  
 class TelaEditarPerfil(GradienteScreen):
     def __init__(self, **kwargs):
@@ -836,9 +979,6 @@ class TelaAtalhos(GradienteScreen2):
         self.popup = Popup(title=title, content=Label(text=message), size_hint=(0.8, 0.4))
         self.popup.open()
     
-         
-         
-
 class TelaNotificacoes(GradienteScreen2):
     def on_enter(self):
         # Exemplo de chamada para adicionar uma imagem ao entrar na tela
@@ -897,8 +1037,8 @@ class Learny(MDApp):
         # Criando uma instãncia do ScreenManager
         sm = ScreenManager()
         # Adicionando as telas no ScreenManager
+        sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaPerfilPais(name="TelaPerfilPais"))
-        '''sm.add_widget(TelaLogin(name="TelaLogin"))
         sm.add_widget(TelaHome(name="TelaHome"))
         sm.add_widget(TelaCadastroPais(name="TelaCadastroPais"))
         sm.add_widget(TelaPerfil(name="TelaPerfil"))
@@ -909,7 +1049,7 @@ class Learny(MDApp):
         sm.add_widget(TelaEditarPerfil(name="TelaEditarPerfil"))
         sm.add_widget(TelaCadastro(name="TelaCadastro"))
         sm.add_widget(TelaSelecionarImagem(name="TelaSelecionarImagem"))
-        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))'''
+        sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
 
