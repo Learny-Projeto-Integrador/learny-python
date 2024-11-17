@@ -116,9 +116,7 @@ WindowManager:
                 size_hint: None, None
                 width: 140
                 height: 25
-                on_press:
-                    root.manager.current = "TelaCadastroPais"
-                    root.manager.transition.direction = "left"
+                on_press: root.go_cadastro_pais()
                 theme_text_color: "Custom"
                 text_color: (0, 0, 0, 1)
 
@@ -136,7 +134,7 @@ WindowManager:
             pos_hint: {'center_x': 0.5, 'top': 0.94}
 
             MDLabel:
-                text: "Tela de Cadastro Pais"
+                text: "Cadastro Pais"
                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                 font_size: "24sp"
                 halign: "center"
@@ -169,10 +167,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
                     background_normal: ""  # Remove a imagem de fundo
                     background_color: (0, 0, 0, 0)  # Torna o fundo transparente
-                    on_press:
-                        root.manager.tipo_cadastro = "pais"
-                        root.manager.current = "TelaSelecionarImagem"
-                        root.manager.transition.direction = "left"
+                    on_press: root.go_selecionar_foto()
 
         # Campos de texto agrupados em BoxLayout
         MDBoxLayout:
@@ -239,6 +234,7 @@ WindowManager:
                         padding: [0,5,0,20]
 
                         Check:
+                            id: check1
                             on_active: root.check_box_click(self, self.active, "1")
                             pos_hint: {'center_x': 0.5}
 
@@ -257,6 +253,7 @@ WindowManager:
                         padding: [0,5,0,20]
 
                         Check:
+                            id: check2
                             on_active: root.check_box_click(self, self.active, "2")
                             pos_hint: {'center_x': 0.5}
 
@@ -275,6 +272,7 @@ WindowManager:
                         padding: [0,5,0,20]
 
                         Check:
+                            id: check3
                             on_active: root.check_box_click(self, self.active, "3")
                             pos_hint: {'center_x': 0.5}
 
@@ -293,6 +291,7 @@ WindowManager:
                         padding: [0,5,0,20]
 
                         Check:
+                            id: check4
                             on_active: root.check_box_click(self, self.active, "4")
                             pos_hint: {'center_x': 0.5}
 
@@ -311,6 +310,7 @@ WindowManager:
                         padding: [0,5,0,20]
 
                         Check:
+                            id: check5
                             on_active: root.check_box_click(self, self.active, "5")
                             pos_hint: {'center_x': 0.5}
 
@@ -369,25 +369,35 @@ WindowManager:
 
         # Agrupando os Títulos em um BoxLayout
         MDBoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             size_hint: 0.8, None  # Ajusta o tamanho horizontal e define altura com base no conteúdo
             height: self.minimum_height
-            spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.89}
+            spacing: 25
+            pos_hint: {'center_x': 0.53, 'top': 0.89}
 
             MDLabel:
-                text: "Tela de Cadastro"
+                text: "Cadastrar Filho"
                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                 font_size: "24sp"
-                halign: "center"
+                halign: "right"
+                pos_hint: {'center_y': 0.5}
                 theme_text_color: "Custom"
                 text_color: (1, 1, 1, 1)
                 size_hint_y: None
                 height: self.texture_size[1]
 
+            MDIconButton:
+                icon: "assets/imagens/icon-voltar-branco.png"
+                size_hint_x: None
+                icon_size: "35sp"
+                pos_hint: {'center_y': 0.5}
+                on_press:
+                    root.manager.current = "TelaPerfilPais"
+                    root.manager.transition.direction = "right"
+
         MDCard:
             size_hint: (0.33, 0.2)
-            pos_hint: {'center_x': 0.5, 'y': 0.61}
+            pos_hint: {'center_x': 0.5, 'y': 0.59}
             radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
             elevation: 0
 
@@ -409,17 +419,14 @@ WindowManager:
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
                     background_normal: ""  # Remove a imagem de fundo
                     background_color: (0, 0, 0, 0)  # Torna o fundo transparente
-                    on_press:
-                        root.manager.tipo_cadastro = "criancas"
-                        root.manager.current = "TelaSelecionarImagem"
-                        root.manager.transition.direction = "left"
+                    on_press: root.go_selecionar_foto()
 
         # Campos de texto agrupados em BoxLayout
         MDBoxLayout:
             orientation: 'vertical'
             size_hint: 0.8, None
             spacing: 20
-            pos_hint: {'center_x': 0.5, 'top': 0.41}
+            pos_hint: {'center_x': 0.5, 'top': 0.39}
 
             MDTextField:
                 id: txt_usuario_cadastro
@@ -458,41 +465,8 @@ WindowManager:
             id: btn_cadastrar
             icon: "assets/imagens/icon-confirmar.png"
             icon_size: "45sp"
-            pos_hint: {'center_x': 0.5, 'top': 0.27}
+            pos_hint: {'center_x': 0.5, 'top': 0.25}
             on_press: root.on_register_button_click()
-
-        # Seção de cadastro agrupada em um BoxLayout
-        MDBoxLayout:
-            orientation: 'horizontal'
-            size_hint: None, None
-            size: self.minimum_size
-            height: '40dp'
-            spacing: 10
-            pos_hint: {'center_x': 0.5, 'top': 0.15}
-
-            MDLabel:
-                text: "Já possui uma conta?"
-                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-                font_size: "15sp"
-                halign: 'left'
-                size_hint_x: None
-                width: '170dp'
-                theme_text_color: "Custom"
-                text_color: (1, 1, 1, 1)
-
-            MDTextButton:
-                id: btn_login
-                text: "Entre aqui"
-                font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
-                font_size: "15sp"
-                size_hint: None, None
-                width: 140
-                height: 25
-                on_press:
-                    root.manager.current = "TelaLogin"
-                    root.manager.transition.direction = "right"
-                theme_text_color: "Custom"
-                text_color: (0, 0, 0, 1)
 
 
 <TelaSelecionarImagem>:
@@ -573,9 +547,7 @@ WindowManager:
             height: 45
             md_bg_color: (0.5, 0.5, 0.5, 1)  # Cor de fundo do botão
             pos_hint: {'center_x': 0.5, 'y': 0.11}
-            on_press:
-                root.manager.current = "TelaCadastro"
-                root.manager.transition.direction = "right"
+            on_press: root.voltar()
 
 <TelaBemVindo>:
     name: "TelaHome"
@@ -775,7 +747,7 @@ WindowManager:
                                     Color:
                                         rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                                     RoundedRectangle:
-                                        size: ((self.size[0] * root.fator_progresso1) - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                                        size: (max((self.size[0] * root.fator_progresso1) - 5, 0), self.size[1] - 10)  # Ajuste o valor conforme necessário
                                         pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                                         radius: [0,3,3,0]  # Bordas arredondadas com raio de 10
                                         source: 'assets/imagens/barra-gradiente-verde.png'  # Imagem com gradiente
@@ -871,7 +843,7 @@ WindowManager:
                                     Color:
                                         rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                                     RoundedRectangle:
-                                        size: ((self.size[0] * root.fator_progresso2) - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                                        size: (max((self.size[0] * root.fator_progresso2) - 5, 0), self.size[1] - 10)
                                         pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                                         radius: [0,3,3,0]  # Bordas arredondadas com raio de 10
                                         source: 'assets/imagens/barra-gradiente-azul.png'  # Imagem com gradiente
@@ -954,7 +926,7 @@ WindowManager:
 
                             # Layout para o retângulo com contorno e bordas arredondadas
                             MDBoxLayout:
-                                orientation: 'vertical'  # Mude para 'horizontal' se preferir empilhar horizontalmente
+                                orientation: 'vertical'
 
                                 canvas.before:
                                     Color:
@@ -967,7 +939,7 @@ WindowManager:
                                     Color:
                                         rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                                     RoundedRectangle:
-                                        size: ((self.size[0] * root.fator_progresso3) - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                                        size: (max((self.size[0] * root.fator_progresso3) - 5, 0), self.size[1] - 10)
                                         pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                                         radius: [0,3,3,0]  # Bordas arredondadas com raio de 10
                                         source: 'assets/imagens/barra-gradiente-roxa.png'  # Imagem com gradiente
@@ -1050,7 +1022,7 @@ WindowManager:
 
                             # Layout para o retângulo com contorno e bordas arredondadas
                             MDBoxLayout:
-                                orientation: 'vertical'  # Mude para 'horizontal' se preferir empilhar horizontalmente
+                                orientation: 'vertical'
 
                                 canvas.before:
                                     Color:
@@ -1063,7 +1035,7 @@ WindowManager:
                                     Color:
                                         rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                                     RoundedRectangle:
-                                        size: ((self.size[0] * root.fator_progresso4) - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                                        size: (max((self.size[0] * root.fator_progresso4) - 5, 0), self.size[1] - 10)
                                         pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                                         radius: [0,3,3,0]  # Bordas arredondadas com raio de 10
                                         source: 'assets/imagens/barra-gradiente-vermelha.png'  # Imagem com gradiente
@@ -1240,7 +1212,7 @@ WindowManager:
 
                 # Layout para o retângulo com contorno e bordas arredondadas
                 MDBoxLayout:
-                    orientation: 'vertical'  # Mude para 'horizontal' se preferir empilhar horizontalmente
+                    orientation: 'vertical'
 
                     canvas.before:
                         Color:
@@ -1261,7 +1233,7 @@ WindowManager:
                         Color:
                             rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                         RoundedRectangle:
-                            size: (self.size[0] - 10, self.size[1] - 20)  # Ajuste o valor conforme necessário
+                            size: (max((self.size[0] * root.fator_progresso) - 10, 0), self.size[1] - 20)  # Evita valores negativos
                             pos: (self.x, self.y + 10)  # Define a posição do retângulo interno
                             radius: [0,5,5,0]  # Bordas arredondadas com raio de 10
                             source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
@@ -1345,46 +1317,6 @@ WindowManager:
                     elevation: 1
                     shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
                     on_press:
-                        root.manager.current = "TelaEditarPerfil"
-                        root.manager.transition.direction = "left"
-
-                    # Layout Estatísticas
-                    RelativeLayout:
-                        size_hint_y: None
-                        height: 120
-
-                        Image:
-                            source: 'assets/imagens/icon-estatisticas.png'
-                            size_hint: None, None
-                            size: 50, 50
-                            pos_hint: {'center_x': 0.15, 'center_y': 0.5}
-                            allow_stretch: True
-
-                        MDLabel:
-                            text: "Estatísticas"
-                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
-                            font_size: "18sp"
-                            halign: "center"
-                            pos_hint: {'center_x': 0.41, 'center_y': 0.5}
-                            valign: "middle"
-                            text_size: self.size
-                            size_hint_x: 1  # Controle para a largura
-                            padding: [10, 0]
-
-            MDBoxLayout:
-                orientation: 'vertical'
-                size_hint_y: None
-                padding: [30,15,30,10]
-                height: self.minimum_height
-                
-                MDCard:
-                    size_hint_y: None
-                    height: 120
-                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-                    radius: [35]  # Definindo os cantos arredondados
-                    elevation: 1
-                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
-                    on_press:
                         root.manager.current = "TelaNotificacoes"
                         root.manager.transition.direction = "left"
 
@@ -1408,6 +1340,44 @@ WindowManager:
                             valign: "middle"
                             text_size: self.size
                             pos_hint: {'center_x': 0.42, 'center_y': 0.5}
+                            size_hint_x: 1  # Controle para a largura
+                            padding: [10, 0]
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [30,15,30,10]
+                height: self.minimum_height
+                
+                MDCard:
+                    size_hint_y: None
+                    height: 120
+                    pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+                    radius: [35]  # Definindo os cantos arredondados
+                    elevation: 1
+                    shadow_color: (0, 0, 0, 0.3)  # Define uma sombra mais clara, com menor opacidade
+                    on_press: root.go_ranking()
+
+                    # Layout Ranking
+                    RelativeLayout:
+                        size_hint_y: None
+                        height: 120
+
+                        Image:
+                            source: 'assets/imagens/icon-ranking.png'
+                            size_hint: None, None
+                            size: 50, 50
+                            pos_hint: {'center_x': 0.15, 'center_y': 0.5}
+                            allow_stretch: True
+
+                        MDLabel:
+                            text: "Ranking"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "center"
+                            valign: "middle"
+                            text_size: self.size
+                            pos_hint: {'center_x': 0.37, 'center_y': 0.5}
                             size_hint_x: 1  # Controle para a largura
                             padding: [10, 0]
 
@@ -1500,11 +1470,22 @@ WindowManager:
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
                     radius: [25, 25, 25, 25]  # Definindo os cantos arredondados
                     elevation: 0
-                        
-                    FitImage:  # Utilizamos FitImage para ajustar a imagem ao tamanho do Card
-                        id: foto_perfil_pai
-                        source: "assets/imagens/fotos-criancas/joana.jpg"
-                        radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                    FloatLayout:  # Empilha a imagem e o botão
+                        FitImage:  # A imagem será colocada primeiro, preenchendo o card
+                            id: foto_perfil_pai
+                            source: "assets/imagens/fotos-criancas/joana.jpg"
+                            size_hint: (1, 1)  # Ocupará todo o espaço do card
+                            pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                            radius: [25, 25, 25, 25]  # Aplica o arredondamento também na imagem
+
+                        Button:
+                            id: image_button 
+                            size_hint: (1, 1)  # O botão vai ocupar 100% do espaço do card
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
+                            background_normal: ""  # Remove a imagem de fundo
+                            background_color: (0, 0, 0, 0)  # Torna o fundo transparente
+                            on_press: root.go_editar_foto()  
 
                 Widget:
                     size_hint_x: None
@@ -1557,9 +1538,7 @@ WindowManager:
                             icon: "assets/imagens/icon-voltar.png"
                             icon_size: "35sp"
                             pos_hint: {'center_x': 0.85, 'center_y': 0.87}
-                            on_press:
-                                root.manager.current = "TelaLogin"
-                                root.manager.transition.direction = "right"
+                            on_press: root.voltar()
 
                         MDIconButton:
                             icon: "assets/imagens/icon-fogo-vermelho.png"
@@ -1621,7 +1600,7 @@ WindowManager:
 
                 # Layout para o retângulo com contorno e bordas arredondadas
                 MDBoxLayout:
-                    orientation: 'vertical'  # Mude para 'horizontal' se preferir empilhar horizontalmente
+                    orientation: 'vertical'
 
                     canvas.before:
                         Color:
@@ -1635,14 +1614,14 @@ WindowManager:
                         Color:
                             rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                         RoundedRectangle:
-                            size: (self.size[0] - 5, self.size[1] - 10)  # Ajuste o valor conforme necessário
+                            size: (self.size[0] - 5, self.size[1] - 10)
                             pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                             radius: [0,10,10,0]  # Bordas arredondadas com raio de 10
 
                         Color:
                             rgba: 1, 1, 1, 1  # Cor de preenchimento do retângulo
                         RoundedRectangle:
-                            size: (self.size[0] - 10, self.size[1] - 20)  # Ajuste o valor conforme necessário
+                            size: (max((self.size[0] * root.fator_progresso) - 10, 0), self.size[1] - 20)  # Evita valores negativos
                             pos: (self.x, self.y + 10)  # Define a posição do retângulo interno
                             radius: [0,5,5,0]  # Bordas arredondadas com raio de 10
                             source: 'assets/imagens/fundo-gradiente3.png'  # Imagem com gradiente
@@ -1781,31 +1760,19 @@ WindowManager:
                         spacing: 20
 
                         MDIconButton:
-                            id: btn_medalhas
                             icon: "assets/imagens/btn-notificacao.png"
                             icon_size: "60sp"
                             pos_hint: {'center_y': 0.51}
-                            on_press:
-                                root.manager.current = "TelaHome"
-                                root.manager.transition.direction = "right"
                         
                         MDIconButton:
-                            id: btn_sair
                             icon: "assets/imagens/btn-atv.png"
                             icon_size: "60sp"
                             pos_hint: {'center_y': 0.51}
-                            on_press:
-                                root.manager.current = "TelaLogin"
-                                root.manager.transition.direction = "right"
                         
                         MDIconButton:
-                            id: btn_ranking
                             icon: "assets/imagens/btn-comentar.png"
                             icon_size: "60sp"
                             pos_hint: {'center_y': 0.51}
-                            on_press:
-                                root.manager.current = "TelaRanking"
-                                root.manager.transition.direction = "left"
 
             Widget:
                 size_hint_y: None
@@ -1915,7 +1882,7 @@ WindowManager:
                                 Image:
                                     source: 'assets/imagens/linha-tracejada-vermelha.png'
                                     size_hint: None, None
-                                    size: self.parent.width, 5  # Ajusta o tamanho da imagem conforme necessário
+                                    size: self.parent.width, 5 
                                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}
 
                             MDBoxLayout:
@@ -2000,7 +1967,7 @@ WindowManager:
                         size_hint: None, None
                         width: 450 
                         height: self.minimum_height
-                        padding: [35, 0, 35, 35]  # Ajuste o padding para espaçamento mais confortável
+                        padding: [35, 0, 35, 35] 
                         pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
                         Widget:
@@ -2030,6 +1997,10 @@ WindowManager:
                             size_hint_y: None
                             height: self.minimum_height
                             spacing: 10
+
+            Widget:
+                size_hint_y: None
+                height: 50
                             
 
 
@@ -2074,9 +2045,7 @@ WindowManager:
                     pos_hint: {'center_x': 0.5, 'center_y': 0.5}  # Centraliza o botão
                     background_normal: ""  # Remove a imagem de fundo
                     background_color: (0, 0, 0, 0)  # Torna o fundo transparente
-                    on_press:
-                        root.manager.current = "TelaEditarFotoPerfil"
-                        root.manager.transition.direction = "left"
+                    on_press: root.go_editar_foto()
 
         # Campos de texto agrupados em BoxLayout
         MDBoxLayout:
@@ -2211,9 +2180,7 @@ WindowManager:
             height: 45
             md_bg_color: (0.5, 0.5, 0.5, 1)  # Cor de fundo do botão
             pos_hint: {'center_x': 0.5, 'y': 0.11}
-            on_press:
-                root.manager.current = "TelaEditarPerfil"
-                root.manager.transition.direction = "right"
+            on_press: root.voltar()
 
 <TelaAtalhos>:
     name: "TelaAtalhos"
@@ -2323,7 +2290,7 @@ WindowManager:
                                     icon: "assets/imagens/btn-ranking.png"
                                     icon_size: "60sp"
                                     pos_hint: {'center_y': 0.51}
-                                    on_press: root.btn_ranking_click()
+                                    on_press: root.go_ranking()
 
                     Widget:
                         size_hint_y: None
@@ -2549,7 +2516,7 @@ WindowManager:
                             size_hint: None, None
                             width: 450 
                             height: self.minimum_height
-                            padding: [35, 0, 35, 35]  # Ajuste o padding para espaçamento mais confortável
+                            padding: [35, 0, 35, 35]
                             pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
                             Widget:
@@ -2738,9 +2705,7 @@ WindowManager:
                                 icon: "assets/imagens/icon-voltar.png"
                                 icon_size: "30sp"
                                 pos_hint: {"center_x": 0.8, "center_y": 0.8}
-                                on_press:
-                                    root.manager.current = "TelaAtalhos"
-                                    root.manager.transition.direction = "right"
+                                on_press: root.voltar()
                     
                     # Layout Rank 1
                     MDBoxLayout:
