@@ -178,7 +178,6 @@ class TelaLogin(GradienteScreen):
                 'email': usuario_banco["email"],
                 'foto': usuario_banco["foto"],
                 'pontos': usuario_banco["pontos"],
-                'titulo': usuario_banco["titulo"],
                 'notificacoes': usuario_banco["notificacoes"],
                 'frustracaoCrianca': usuario_banco["frustracaoCrianca"],
                 'filhoSelecionado': usuario_banco["filhoSelecionado"]
@@ -350,7 +349,6 @@ class TelaCadastroPais(GradienteScreen):
                             'email': email,
                             'foto': caminho_imagem,
                             'pontos': 0,
-                            'titulo': '',
                             'notificacoes': [],
                             'frustracaoCrianca': self.nivel_frustracao,
                             'filhoSelecionado': ""
@@ -828,8 +826,9 @@ class TelaPerfilPais(Screen):
                     if dados_filho:
                         self.lista_filhos.append(dados_filho)
                 
-                if not self.lista_filhos:
-                    print("Nenhum filho encontrado.")
+                if not self.lista_filhos:         
+                    self.ids.img_filho_principal.source = ""
+                    self.ids.lbl_nome_filho_principal.text = "Cadastre seu primeiro filho"
                     
                 # Atualiza o painel principal com o filho selecionado
                 filho_encontrado = False
@@ -848,6 +847,8 @@ class TelaPerfilPais(Screen):
                     self.ids.img_filho_principal.source = self.lista_filhos[0]["foto"]
                     self.ids.lbl_nome_filho_principal.text = self.lista_filhos[0]["nome"]
                     self.filho_selecionado = self.lista_filhos[0]["id"]  # Atualiza para o primeiro filho
+                    if self.lista_filhos[0]["ranking"] == "habilitado":
+                            self.ids.switch_ranking.active = True
                 
             else:
                 print("Erro na conexão com o banco de dados.")
