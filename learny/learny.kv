@@ -751,6 +751,12 @@ WindowManager:
                                         pos: (self.x, self.y + 5)  # Define a posição do retângulo interno
                                         radius: [0,3,3,0]  # Bordas arredondadas com raio de 10
                                         source: 'assets/imagens/barra-gradiente-verde.png'  # Imagem com gradiente
+                        
+                        # Botão transparente sobre o layout
+                        Button:
+                            size_hint: (1, 1)  # Cobre todo o layout
+                            background_color: (0, 0, 0, 0)  # Transparente
+                            on_release: root.go_game()
 
                 # Layout Mundo 2
                 MDBoxLayout:

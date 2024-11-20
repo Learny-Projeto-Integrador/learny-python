@@ -1,6 +1,10 @@
 # Instale as bibliotecas
 # pip install pymongo | pip install kivy | pip install kivymd | pip install pygame (ainda não está sendo usado)
 
+import shutil
+import os
+import logging
+import subprocess
 from kivymd.app import MDApp
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -18,18 +22,16 @@ from kivymd.uix.fitimage import FitImage
 from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Color, Rectangle
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import StringProperty, ListProperty
 from os.path import expanduser, join
-import shutil
-import os
-import logging
 
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
 # Define o tamanho da janela
 Window.size = (400, 700)
-Window.left = 550
-Window.top = 75
+Window.left = 568
+Window.top = 80
 
 # Gerenciador das telas
 class WindowManager(ScreenManager):
@@ -642,6 +644,16 @@ class TelaHome(GradienteScreen):
         self.fator_progresso2 = (valores_mundos[1] / 100)
         self.fator_progresso3 = (valores_mundos[2] / 100)
         self.fator_progresso4 = (valores_mundos[3] / 100)
+
+    def go_game(self):
+
+        # Caminho do script do Pygame
+        projeto_dir = os.path.dirname(os.path.abspath(__file__))
+        pygame_script_path = os.path.join(projeto_dir, 'pygame/main.py')
+        
+        # Executa o script Pygame em um subprocesso
+        subprocess.Popen(["python", pygame_script_path])
+        
         
 class TelaPerfil(Screen):
     fator_progresso = 0
@@ -1386,6 +1398,31 @@ class Learny(MDApp):
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
+
+    def on_start(self):
+        # Inicia um relógio para verificar o arquivo a cada 0.5 segundo
+        Clock.schedule_interval(self.verificar_tela_destino, 0.5)
+
+    def verificar_tela_destino(self, dt):
+        # Caminho do arquivo que contém a tela de destino
+        projeto_dir = os.path.dirname(os.path.abspath(__file__))
+        tela_destino_file = os.path.join(projeto_dir, 'tela_destino.txt')
+
+        # Verifica se o arquivo existe e se contém algo
+        if os.path.exists(tela_destino_file):
+            with open(tela_destino_file, 'r') as f:
+                tela_destino = f.read().strip()
+                if tela_destino:
+                    # Cria a transição com a direção para a esquerda
+                    transition = SlideTransition(direction='left')
+                    
+                    # Muda para a tela de destino com a transição definida
+                    self.root.transition = transition
+                    self.root.current = tela_destino
+
+                    # Limpa o arquivo depois de mudar a tela
+                    with open(tela_destino_file, 'w') as f:
+                        f.write('')  # Limpa o conteúdo do arquivo após a leitura
 
     def on_stop(self):
         # Limpa a variável ao fechar o aplicativo
