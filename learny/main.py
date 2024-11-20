@@ -623,12 +623,14 @@ class TelaHome(GradienteScreen):
     fator_progresso2 = 0 
     fator_progresso3 = 0 
     fator_progresso4 = 0  
-    
+    usuario_ativo = None
+
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
         self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
         self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        self.usuario_ativo = dados_usuario["usuario"]
         
         # Obtendo os valores dos mundos
         valores_mundos = [list(mundo.values())[0] for mundo in dados_usuario["progressoMundos"]]
@@ -652,7 +654,7 @@ class TelaHome(GradienteScreen):
         pygame_script_path = os.path.join(projeto_dir, 'pygame/main.py')
         
         # Executa o script Pygame em um subprocesso
-        subprocess.Popen(["python", pygame_script_path])
+        subprocess.Popen(["python", pygame_script_path, self.usuario_ativo])
         
         
 class TelaPerfil(Screen):
