@@ -9,7 +9,7 @@ ALTURA = 700
 class ConclusaoFase:
     def __init__(self, gerenciador):
         self.gerenciador = gerenciador
-        self.tempo_conclusao = None  # Armazena o tempo de início da tela
+        self.tempo = None  # Armazena o tempo de início da tela
 
         # Configurações de assets
         self.assets_dir = os.path.dirname(os.path.abspath(__file__))
@@ -19,7 +19,15 @@ class ConclusaoFase:
         self.icon_fechar_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'icons', 'icon-fechar.png')
         )
+        self.font = pygame.font.Font(
+            os.path.join(self.assets_dir, 'assets', 'fonts', 'montserrat', 'Montserrat-Bold.ttf'), 20
+        )
 
+
+
+    def receber_dados(self, dados):
+        print(f"Dados recebidos: {dados}")
+        self.tempo = dados
 
     icon_fechar = None
 
@@ -27,9 +35,33 @@ class ConclusaoFase:
         
         tela.blit(self.background_image, (0, 0))  # Redesenhar a imagem de fundo
         self.icon_fechar = tela.blit(self.icon_fechar_image, (175, 625))  # Redesenhar a imagem de fundo
+        
+        pontos_fase = "100000"
+        tempo_conclusao = self.tempo
+        porc_acertos = "100%"
+        
+        texto_pontos = self.font.render(pontos_fase, True, (0,0,0))
+        texto_tempo = self.font.render(tempo_conclusao, True, (0,0,0))
+        texto_porc = self.font.render(porc_acertos, True, (0,0,0))
+
+        # Centralizar os textos com base na posição especificada
+        pos_pontos = self._centralizar_texto(115, 453, texto_pontos)
+        pos_tempo = self._centralizar_texto(193, 562, texto_tempo)
+        pos_porc = self._centralizar_texto(280, 453, texto_porc)
+
+        tela.blit(texto_pontos, pos_pontos)
+        tela.blit(texto_tempo, pos_tempo)
+        tela.blit(texto_porc, pos_porc)
 
         # Atualizar a tela
         pygame.display.flip()
+        
+    def _centralizar_texto(self, x, y, texto):
+        largura_texto = texto.get_width()
+        altura_texto = texto.get_height()
+
+        # Centraliza em relação ao ponto x, y
+        return x - largura_texto // 2, y - altura_texto // 2
 
     def atualizar(self, eventos):
         for evento in eventos:

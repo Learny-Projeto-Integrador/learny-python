@@ -85,10 +85,15 @@ class TelaInicial:
         texto_pontos = self.font.render(pontos, True, (0,0,0))
         texto_medalhas = self.font.render(medalhas, True, (0,0,0))
         texto_ranking = self.font.render(ranking, True, (0,0,0))
+        
+        # Centralizar os textos com base na posição especificada
+        pos_pontos = self._centralizar_texto(97, 102, texto_pontos)
+        pos_medalhas = self._centralizar_texto(212, 102, texto_medalhas)
+        pos_ranking = self._centralizar_texto(320, 101, texto_ranking)
 
-        self.content_surface.blit(texto_pontos, (80,90))
-        self.content_surface.blit(texto_medalhas, (195,90))
-        self.content_surface.blit(texto_ranking, (305,89))
+        self.content_surface.blit(texto_pontos, pos_pontos)
+        self.content_surface.blit(texto_medalhas, pos_medalhas)
+        self.content_surface.blit(texto_ranking, pos_ranking)
 
         # Desenhar o content_surface na tela com o deslocamento do scroll
         tela.blit(self.content_surface, (0, -self.scroll_y))
@@ -108,6 +113,13 @@ class TelaInicial:
 
         # Atualizar a tela
         pygame.display.flip()
+        
+    def _centralizar_texto(self, x, y, texto):
+        largura_texto = texto.get_width()
+        altura_texto = texto.get_height()
+
+        # Centraliza em relação ao ponto x, y
+        return x - largura_texto // 2, y - altura_texto // 2
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -146,7 +158,7 @@ class TelaInicial:
                             # Áreas circulares para movimentação do personagem
                             {
                                 "area": (225, 675, 40),
-                                "acao": lambda: self.personagem.mover_para((190, 635),"conclusao_fase") or self.personagem.set_estado("correndo_direita"),
+                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_numeros") or self.personagem.set_estado("correndo_direita"),
                                 "tipo": "circulo",
                             },
                             {

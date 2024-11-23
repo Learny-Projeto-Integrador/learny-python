@@ -2,6 +2,8 @@ import pygame
 from gerenciador_telas import GerenciadorTelas
 from telas.tela_inicial import TelaInicial
 from telas.fase_numeros import FaseNumeros
+from telas.fase_observacao import FaseObservacao
+from telas.fase_fala import FaseFala
 from telas.conclusao_fase import ConclusaoFase
 
 def main():
@@ -16,10 +18,12 @@ def main():
     # Registra as telas
     gerenciador.registrar_tela("tela_inicial", TelaInicial(gerenciador))
     gerenciador.registrar_tela("fase_numeros", FaseNumeros(gerenciador))
+    gerenciador.registrar_tela("fase_observacao", FaseObservacao(gerenciador))
+    gerenciador.registrar_tela("fase_fala", FaseFala(gerenciador))
     gerenciador.registrar_tela("conclusao_fase", ConclusaoFase(gerenciador))
 
     # Define a tela inicial
-    gerenciador.trocar_tela("tela_inicial")
+    gerenciador.trocar_tela("fase_fala")
 
     # Loop principal do jogo
     rodando = True

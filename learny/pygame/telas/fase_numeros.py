@@ -62,13 +62,15 @@ class FaseNumeros:
         # Atualizar a tela
         pygame.display.flip()
 
-    def trocar_tela(self, tela_destino):
+    def trocar_tela(self):
         tempo_atual = pygame.time.get_ticks()
         tempo_decorrido = (tempo_atual - self.tempo_inicio_tela) / 1000  # Em segundos
-
-        print(f"Tempo na tela atual: {tempo_decorrido:.2f} segundos")
         
-        self.gerenciador.trocar_tela("tela_inicial")
+        # Formata o tempo para MM:SS
+        minutos, segundos = divmod(int(tempo_decorrido), 60)
+        tempo_formatado = f"{minutos:02}:{segundos:02}"
+        
+        self.gerenciador.trocar_tela("conclusao_fase", tempo_formatado)
 
         self.tempo_inicio_tela = None
 
@@ -97,7 +99,7 @@ class FaseNumeros:
                             if item["area"].collidepoint(x, y):  # Verifica se o clique foi na área
                                 if item["area"] == self.painel10:
                                     item["acao"]()  # Executa a ação associada
-                                    self.trocar_tela("tela-conclusao")
+                                    self.trocar_tela()
                                 item["acao"]()  # Executa a ação associada
                                 break
 
