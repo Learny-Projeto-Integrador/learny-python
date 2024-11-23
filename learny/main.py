@@ -154,7 +154,7 @@ class TelaLogin(GradienteScreen):
                 'usuario': usuario_banco["usuario"],
                 'senha': usuario_banco["senha"],
                 'nome': usuario_banco["nome"],
-                'data_de_nascimento': usuario_banco["data_de_nascimento"],
+                'dataNasc': usuario_banco["dataNasc"],
                 'foto': usuario_banco["foto"],
                 'pai': usuario_banco["pai"],
                 'pontos': usuario_banco["pontos"],
@@ -164,6 +164,9 @@ class TelaLogin(GradienteScreen):
                 'missoesDiarias': usuario_banco["missoesDiarias"],
                 'notificaoes': usuario_banco["notificacoes"],
                 'ranking': usuario_banco["ranking"],
+                'rankAtual': usuario_banco["rankAtual"],
+                'faseAtual': usuario_banco["faseAtual"],
+                'medalhaAtiva': usuario_banco["medalhaAtiva"],
                 'desafios': usuario_banco["desafios"],
                 'progressoMundos': usuario_banco["progressoMundos"]
             }
@@ -429,6 +432,11 @@ class TelaCadastro(GradienteScreen):
                 # Buscando a coleção para adicionar
                 criancas = db["criancas"]
                 pais = db["pais"]
+                ranking = db["ranking"]
+                missoes = db["missoes"]
+
+                # Selecionar 3 documentos aleatórios
+                missoes_diarias = list(missoes.aggregate([{ "$sample": { "size": 3 } }]))
                 
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario_cadastro.text
@@ -459,17 +467,20 @@ class TelaCadastro(GradienteScreen):
                             'usuario': usuario,
                             'senha': senha,
                             'nome': nome,
-                            'data_de_nascimento': data_nasc,
+                            'dataNasc': data_nasc,
                             'foto': caminho_imagem,
                             'pai': self.id_pai,
                             'pontos': 0,
-                            'medalhas': 0,
+                            'medalhas': [],
                             'fasesConcluidas': 0,
                             'conquistas': 0,
-                            'missoesDiarias': [],
+                            'missoesDiarias': missoes_diarias,
                             'notificacoes': [],
                             'ranking': 'habilitado',
                             'desafios': 'permitidos',
+                            'rankAtual': "",
+                            'faseAtual': "",
+                            'medalhaAtiva': "",
                             'progressoMundos': [
                                 {'mundo1': 0},
                                 {'mundo2': 0},
@@ -478,6 +489,14 @@ class TelaCadastro(GradienteScreen):
                             ]
                         }
                         criancas.insert_one(crianca)
+
+                        if ranking.count_documents({}) <= 7:
+                            crianca_ranking = {
+                                'foto': caminho_imagem,
+                                'nome': nome,
+                                'pontos': 0,
+                            }
+                            ranking.insert_one(crianca_ranking)
                         
                         # Exibir popup de sucesso
                         self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!")
@@ -628,8 +647,8 @@ class TelaHome(GradienteScreen):
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
-        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
-        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        self.ids.lbl_medalhas.text = str(len(dados_usuario["medalhas"]))
+        self.ids.lbl_ranking.text = str(dados_usuario["rankAtual"])
         self.usuario_ativo = dados_usuario["usuario"]
         
         # Obtendo os valores dos mundos
@@ -652,6 +671,8 @@ class TelaHome(GradienteScreen):
         # Caminho do script do Pygame
         projeto_dir = os.path.dirname(os.path.abspath(__file__))
         pygame_script_path = os.path.join(projeto_dir, 'pygame/main.py')
+
+        print(self.usuario_ativo)
         
         # Executa o script Pygame em um subprocesso
         subprocess.Popen(["python", pygame_script_path, self.usuario_ativo])
@@ -1052,7 +1073,7 @@ class TelaEditarPerfil(GradienteScreen):
                     self.id_crianca = usuario_banco["_id"]
                     senha = usuario_banco["senha"]
                     nome = usuario_banco["nome"]
-                    data_nasc = usuario_banco["data_de_nascimento"]
+                    data_nasc = usuario_banco["dataNasc"]
                     self.foto = usuario_banco["foto"]
                     
                     if not self.dados_carregados:
@@ -1107,7 +1128,7 @@ class TelaEditarPerfil(GradienteScreen):
                         'usuario': usuario,
                         'senha': senha,
                         'nome': nome,
-                        'data_de_nascimento': data_nasc,
+                        'dataNasc': data_nasc,
                         'foto': caminho_imagem
                     }
                     # Atualizar os dados da criança pelo ID
@@ -1275,6 +1296,13 @@ class TelaEditarFotoPerfil(GradienteScreen):
 
 
 class TelaAtalhos(GradienteScreen2):
+    missoes = []
+    def atualizar_dados(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.misoses = dados_usuario["missoesDiarias"]
+        for i in self.missoes:
+            pass
+
     # Função para verificar o clique no botão de ir para o ranking
     def go_ranking(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
@@ -1316,30 +1344,30 @@ class TelaRanking(TelaAzul):
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
-        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
-        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        self.ids.lbl_medalhas.text = str(len(dados_usuario["medalhas"]))
+        self.ids.lbl_ranking.text = str(dados_usuario["rankAtual"])
         
     def atualizar_ranking(self):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
             if db is not None:
-                criancas = db["criancas"]
+                ranking = db["ranking"]
                 
-                # Ordenando as crianças por pontos em ordem decrescente e limitando a 7 resultados
-                top_criancas = list(criancas.find().sort("pontos", -1).limit(7))
-                
+                # Ordenando as crianças por pontos em ordem decrescente
+                criancas = list(ranking.find())
+
                 # Iterando sobre os resultados e atualizando a interface
-                for i, crianca in enumerate(top_criancas):
+                for i, ranking in enumerate(criancas):
                     # Exibindo a foto apenas para os três primeiros colocados
                     if i < 3:
-                        self.ids[f'img_rank{i+1}'].source = crianca["foto"]
+                        self.ids[f'img_rank{i+1}'].source = ranking["foto"]
                     
                     # Atualizando nome e pontos para o os rankings 4 a 7
-                    self.ids[f'lbl_nome_rank{i+1}'].text = crianca["nome"]
-                    self.ids[f'lbl_pts_rank{i+1}'].text = str(crianca["pontos"])
+                    self.ids[f'lbl_nome_rank{i+1}'].text = ranking["nome"]
+                    self.ids[f'lbl_pts_rank{i+1}'].text = str(ranking["pontos"])
 
                 # Se houver menos de 7 crianças, preenche os campos restantes com valores vazios
-                for i in range(len(top_criancas), 7):
+                for i in range(len(criancas), 7):
                     # Exibindo a foto apenas para os três primeiros colocados
                     if i < 3:
                         self.ids[f'img_rank{i+1}'].source = ""   # Imagem vazia

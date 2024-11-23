@@ -9,8 +9,11 @@ LARGURA = 400
 ALTURA = 700
 
 class TelaInicial:
-    def __init__(self, gerenciador):
+    def __init__(self, gerenciador, create_connection, close_connection, usuario_ativo):
         self.gerenciador = gerenciador  # Armazena a referência do gerenciador
+        self.create_connection = create_connection
+        self.close_connection = close_connection
+        self.usuario_ativo = usuario_ativo
         self.dados_usuario = None
         self.scroll_y = 0
 
@@ -64,6 +67,8 @@ class TelaInicial:
             os.path.join(self.assets_dir, 'assets', 'icons', 'icon-menu-hamburguer.png')
         )
 
+        self.acessar_banco()
+
     def criar_personagem(self):
         sprite_sheet_path = os.path.join(self.assets_dir, 'assets', 'sprites', 'george.png')
         correndo_direita = [(144, 0), (144, 48), (144, 96), (144, 144)]
@@ -78,9 +83,9 @@ class TelaInicial:
         self.content_surface.blit(self.background_image, (0, 0))  # Redesenhar a imagem de fundo
         self.todas_as_sprites.draw(self.content_surface)  # Desenha o personagem no content_surface
 
-        pontos = "100"
-        medalhas = "100"
-        ranking = "100"
+        pontos = str(self.dados_usuario["pontos"])
+        medalhas = str(len(self.dados_usuario["medalhas"]))
+        ranking = str(self.dados_usuario["rankAtual"])
 
         texto_pontos = self.font.render(pontos, True, (0,0,0))
         texto_medalhas = self.font.render(medalhas, True, (0,0,0))
@@ -120,6 +125,32 @@ class TelaInicial:
 
         # Centraliza em relação ao ponto x, y
         return x - largura_texto // 2, y - altura_texto // 2
+    
+    def buscar_dados_crianca(self, usuario_banco):
+        # Busca os dados da crianca ativa             
+        if usuario_banco:
+            return {
+                'pontos': usuario_banco["pontos"],
+                'medalhas': usuario_banco["medalhas"],
+                'rankAtual': usuario_banco["rankAtual"],
+            }
+        return None
+    
+    def acessar_banco(self):
+        # Exemplo de uso
+        try:
+            client, db = self.create_connection()
+            if db is not None:
+
+                criancas = db["criancas"]
+                usuario_banco_crianca = criancas.find_one({"usuario": self.usuario_ativo})
+                self.dados_usuario = self.buscar_dados_crianca(usuario_banco_crianca)
+                
+            else:
+                print("Erro na conexão com o banco de dados.")
+        finally:
+            self.close_connection(client)
+            print("Conexão fechada.")
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -158,17 +189,17 @@ class TelaInicial:
                             # Áreas circulares para movimentação do personagem
                             {
                                 "area": (225, 675, 40),
-                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_numeros") or self.personagem.set_estado("correndo_direita"),
+                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_observacao") or self.personagem.set_estado("correndo_direita"),
                                 "tipo": "circulo",
                             },
                             {
                                 "area": (290, 527, 40),
-                                "acao": lambda: self.personagem.mover_para((253, 488)) or self.personagem.set_estado("correndo_direita"),
+                                "acao": lambda: self.personagem.mover_para((253, 488),"fase_numeros") or self.personagem.set_estado("correndo_direita"),
                                 "tipo": "circulo",
                             },
                             {
                                 "area": (227, 390, 40),
-                                "acao": lambda: self.personagem.mover_para((190, 350)) or self.personagem.set_estado("correndo_esquerda"),
+                                "acao": lambda: self.personagem.mover_para((190, 350),"fase_fala") or self.personagem.set_estado("correndo_esquerda"),
                                 "tipo": "circulo",
                             },
                             {

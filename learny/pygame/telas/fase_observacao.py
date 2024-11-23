@@ -7,8 +7,11 @@ LARGURA = 400
 ALTURA = 700
 
 class FaseObservacao:
-    def __init__(self, gerenciador):
+    def __init__(self, gerenciador, create_connection, close_connection, usuario_ativo):
         self.gerenciador = gerenciador
+        self.create_connection = create_connection
+        self.close_connection = close_connection
+        self.usuario_ativo = usuario_ativo
         self.tempo_inicio_tela = None  # Armazena o tempo de início da tela
 
         # Configurações de assets
@@ -91,6 +94,93 @@ class FaseObservacao:
         # Atualizar a tela
         pygame.display.flip()
 
+    # Função para inserir pontuação
+    def inserir_pontuacao(self, pontos_fase):
+        client, db = self.create_connection()  # Obter conexão existente
+
+        try:
+            if db is not None:
+                # Buscando a coleção de usuários (no caso, a coleção "criancas")
+                criancas = db["criancas"]
+                medalhas = db["medalhas"]
+
+                medalha_iniciando = medalhas.find_one({"nome": "Iniciando!"})
+
+                # Buscar o usuário na coleção pelo nome de usuário
+                crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
+
+                if crianca_ativa:
+                    missoes = crianca_ativa["missoesDiarias"]
+                    missao_encontrada = any(
+                        missao["nome"] == "Conclua a fase de observação" for missao in missoes
+                    )
+
+                    # Base da atualização
+                    atualizacao = {
+                        "$set": {
+                            "pontos": crianca_ativa["pontos"] + pontos_fase,
+                            "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
+                        },
+                        "$push": {
+                            "medalhas": medalha_iniciando,
+                        },
+                    }
+
+                    # Adicionar exclusão da missão, se encontrada
+                    if missao_encontrada:
+                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de observação"}}
+
+                    # Aplicar a atualização no banco
+                    criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
+                    
+                else:
+                    print(f"Usuário '{self.usuario_ativo}' não encontrado na coleção 'criancas'.")
+            else:
+                print("Erro ao acessar o banco de dados.")
+
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+            
+        finally:
+            self.close_connection(client)
+
+    def atualizar_ranking(self):
+        client, db = self.create_connection()  # Obter conexão existente
+
+        try:
+            if db is not None:
+                criancas = db["criancas"]
+                ranking = db["ranking"]
+
+                ranking_atualizado = []
+
+                # Ordenando as crianças por pontos em ordem decrescente
+                top_criancas = list(criancas.find().sort("pontos", -1))
+
+                # Atualizando o ranking atual das crianças e criando o ranking atualizado
+                for i, crianca in enumerate(top_criancas):
+                    # Atualiza o rankAtual de todas as crianças na coleção "criancas"
+                    criancas.update_one({"_id": crianca["_id"]}, {"$set": {"rankAtual": i + 1}})
+                    
+                    # Adiciona apenas as 7 primeiras ao ranking atualizado
+                    if i < 7:  # Corrigido para limitar a 7 crianças
+                        crianca_ranking = {"foto": crianca["foto"], "nome": crianca["nome"], "pontos": crianca["pontos"]}
+                        ranking_atualizado.append(crianca_ranking)
+
+                # Substituir todo o conteúdo da coleção "ranking" pelo novo ranking
+                ranking.delete_many({})  # Remove todos os documentos existentes
+                if ranking_atualizado:
+                    ranking.insert_many(ranking_atualizado)  # Insere os novos dados
+
+            else:
+                print("Erro na conexão com o banco de dados.")
+
+        except Exception as e:
+            print(f"Ocorreu um erro: {e}")
+
+        finally:
+            self.close_connection(client)
+
     def trocar_tela(self):
         tempo_atual = pygame.time.get_ticks()
         tempo_decorrido = (tempo_atual - self.tempo_inicio_tela) / 1000  # Em segundos
@@ -99,7 +189,11 @@ class FaseObservacao:
         minutos, segundos = divmod(int(tempo_decorrido), 60)
         tempo_formatado = f"{minutos:02}:{segundos:02}"
         
-        self.gerenciador.trocar_tela("conclusao_fase", tempo_formatado)
+        pontos_fase = 100
+        self.inserir_pontuacao(pontos_fase)
+        self.atualizar_ranking()
+        
+        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase])
 
         self.tempo_inicio_tela = None
         

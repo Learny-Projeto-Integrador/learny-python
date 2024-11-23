@@ -9,7 +9,8 @@ ALTURA = 700
 class ConclusaoFase:
     def __init__(self, gerenciador):
         self.gerenciador = gerenciador
-        self.tempo = None  # Armazena o tempo de início da tela
+        self.tempo = None 
+        self.pontos = None
 
         # Configurações de assets
         self.assets_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,7 +28,8 @@ class ConclusaoFase:
 
     def receber_dados(self, dados):
         print(f"Dados recebidos: {dados}")
-        self.tempo = dados
+        self.tempo = dados[0]
+        self.pontos = dados[1]
 
     icon_fechar = None
 
@@ -36,8 +38,8 @@ class ConclusaoFase:
         tela.blit(self.background_image, (0, 0))  # Redesenhar a imagem de fundo
         self.icon_fechar = tela.blit(self.icon_fechar_image, (175, 625))  # Redesenhar a imagem de fundo
         
-        pontos_fase = "100000"
-        tempo_conclusao = self.tempo
+        pontos_fase = str(self.pontos)
+        tempo_conclusao = str(self.tempo)
         porc_acertos = "100%"
         
         texto_pontos = self.font.render(pontos_fase, True, (0,0,0))

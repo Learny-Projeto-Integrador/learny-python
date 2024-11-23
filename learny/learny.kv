@@ -2333,6 +2333,7 @@ WindowManager:
                                 
                                 # Layout para a missão 01
                                 MDBoxLayout:
+                                    id: painel_missao1
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2356,6 +2357,7 @@ WindowManager:
                                     
                                     RelativeLayout:
                                         MDLabel:
+                                            id: lbl_missao1
                                             text: "Faça 10 fases"
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
@@ -2365,11 +2367,13 @@ WindowManager:
                                             pos_hint: {"center_x": 0.3, "center_y": 0.5}  # Centraliza horizontalmente
                                         
                                         Image:
+                                            id: icon_missao1
                                             source: 'assets/imagens/icon-diaria.png'
                                             pos_hint: {'center_x': 0.89, 'center_y': 0.64}
 
                                 # Layout para a missão 02
                                 MDBoxLayout:
+                                    id: painel_missao2
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2393,6 +2397,7 @@ WindowManager:
                                     
                                     RelativeLayout:
                                         MDLabel:
+                                            id: lbl_missao2
                                             text: "Conclua a atividade\nde observação"
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
@@ -2402,11 +2407,13 @@ WindowManager:
                                             pos_hint: {"center_x": 0.58, "center_y": 0.5} 
                                         
                                         Image:
+                                            id: icon_missao2
                                             source: 'assets/imagens/icon-diaria2.png'
                                             pos_hint: {'center_x': 0.88, 'center_y': 0.60}
                                                                 
                                 # Layout para a missão 03
                                 MDBoxLayout:
+                                    id: painel_missao3
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2430,6 +2437,7 @@ WindowManager:
                                     
                                     RelativeLayout:
                                         MDLabel:
+                                            id: lbl_missao3
                                             text: "Conclua um mundo\nhoje"
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
@@ -2439,6 +2447,7 @@ WindowManager:
                                             pos_hint: {"center_x": 0.58, "center_y": 0.5} 
                                         
                                         Image:
+                                            id: icon_missao3
                                             source: 'assets/imagens/icon-diaria3.png'
                                             pos_hint: {'center_x': 0.88, 'center_y': 0.60}
                 
@@ -2733,7 +2742,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank1
-                                    source: "assets/imagens/fotos-criancas/joana.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem
@@ -2822,7 +2831,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank2
-                                    source: "assets/imagens/fotos-criancas/emanoela_foto_menor.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem
@@ -2911,7 +2920,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank3
-                                    source: "assets/imagens/fotos-criancas/enzo_foto_menor.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem
