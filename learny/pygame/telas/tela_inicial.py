@@ -15,6 +15,8 @@ class TelaInicial:
         self.close_connection = close_connection
         self.usuario_ativo = usuario_ativo
         self.dados_usuario = None
+        self.acessar_banco()
+        self.audio = self.dados_usuario["audio"]
         self.scroll_y = 0
 
         # Configurações de assets
@@ -24,6 +26,15 @@ class TelaInicial:
         )
         self.menu_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'imagens', 'retangulo-menu.png')
+        )
+        self.icon_medalha_verde = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-medalha-verde.png')
+        )
+        self.icon_medalha_vermelha = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-medalha-vermelha.png')
+        )
+        self.icon_medalha_azul = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-medalha-azul.png')
         )
         self.menu_image = pygame.transform.scale(self.menu_image, (LARGURA, 58))
         self.font = pygame.font.Font(
@@ -67,21 +78,27 @@ class TelaInicial:
             os.path.join(self.assets_dir, 'assets', 'icons', 'icon-menu-hamburguer.png')
         )
 
-        self.acessar_banco()
-
     def criar_personagem(self):
         sprite_sheet_path = os.path.join(self.assets_dir, 'assets', 'sprites', 'george.png')
         correndo_direita = [(144, 0), (144, 48), (144, 96), (144, 144)]
         correndo_esquerda = [(48, 0), (48, 48), (48, 96), (48, 144)]
         frame_size = (48, 48)
         scale_factor = 1.5
-        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador)
+        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador, self.audio)
 
     def desenhar(self, tela):
         # Atualiza os sprites no content_surface
         self.content_surface.fill((255, 255, 255))  # Preencher com fundo transparente ou branco
         self.content_surface.blit(self.background_image, (0, 0))  # Redesenhar a imagem de fundo
         self.todas_as_sprites.draw(self.content_surface)  # Desenha o personagem no content_surface
+
+        if self.dados_usuario["medalhaAtiva"] == "Iniciando!":
+            self.content_surface.blit(self.icon_medalha_verde, (45,180))
+        elif self.dados_usuario["medalhaAtiva"] == "A todo o vapor!":
+            self.content_surface.blit(self.icon_medalha_vermelha, (45,180))
+        elif self.dados_usuario["medalhaAtiva"] == "Mundo Concluído!":
+            self.content_surface.blit(self.icon_medalha_azul, (45,180))
+        
 
         pontos = str(self.dados_usuario["pontos"])
         medalhas = str(len(self.dados_usuario["medalhas"]))
@@ -125,6 +142,7 @@ class TelaInicial:
 
         # Centraliza em relação ao ponto x, y
         return x - largura_texto // 2, y - altura_texto // 2
+
     
     def buscar_dados_crianca(self, usuario_banco):
         # Busca os dados da crianca ativa             
@@ -133,6 +151,8 @@ class TelaInicial:
                 'pontos': usuario_banco["pontos"],
                 'medalhas': usuario_banco["medalhas"],
                 'rankAtual': usuario_banco["rankAtual"],
+                'medalhaAtiva': usuario_banco["medalhaAtiva"],
+                'audio': usuario_banco["audio"]
             }
         return None
     
@@ -150,7 +170,6 @@ class TelaInicial:
                 print("Erro na conexão com o banco de dados.")
         finally:
             self.close_connection(client)
-            print("Conexão fechada.")
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -204,7 +223,7 @@ class TelaInicial:
                             },
                             {
                                 "area": (100, 313, 50),
-                                "acao": lambda: self.personagem.mover_para((65, 275)) or self.personagem.set_estado("correndo_esquerda"),
+                                "acao": lambda: self.personagem.mover_para((65, 275),"fase_fala") or self.personagem.set_estado("correndo_esquerda"),
                                 "tipo": "circulo",
                             }
                         ]
@@ -248,8 +267,10 @@ class TelaInicial:
         self.todas_as_sprites.update()
 
     def retornar_para_kivy(self, tela_destino):
-        parent_dir = os.path.dirname(self.assets_dir)
-        tela_destino_file = os.path.join(parent_dir, 'tela_destino.txt')
+        # Obtém o caminho do diretório principal (pai do Pygame)
+        projeto_dir = os.path.dirname(os.path.abspath(__file__))  # Diretório atual
+        destino_dir = os.path.dirname(os.path.dirname(projeto_dir))  # Sobe dois níveis
+        tela_destino_file = os.path.join(destino_dir, 'tela_destino.txt')
         with open(tela_destino_file, 'w') as f:
             f.write(tela_destino)
         pygame.quit()
@@ -259,7 +280,7 @@ class TelaInicial:
         self.scrollbar_y = self.scroll_y * (ALTURA / self.scrollable_height)
 
 class Personagem(pygame.sprite.Sprite):
-    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador):
+    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador, audio):
         super().__init__()
         self.sprite_sheet = pygame.image.load(sprite_sheet_path).convert_alpha()
 
@@ -282,6 +303,7 @@ class Personagem(pygame.sprite.Sprite):
         # Referência ao gerenciador
         self.gerenciador = gerenciador
         self.fase_destino = None  # Nova variável para armazenar a fase de destino
+        self.audio = audio
 
     def carregar_frames(self, frame_positions, frame_size, scale_factor):
         frames = []
@@ -332,6 +354,6 @@ class Personagem(pygame.sprite.Sprite):
 
                 # Troca para a fase de destino usando o gerenciador
                 if self.fase_destino:
-                    self.gerenciador.trocar_tela(self.fase_destino)
+                    self.gerenciador.trocar_tela(self.fase_destino, self.audio)
                     self.fase_destino = None  # Reseta a fase destino para evitar novas trocas
 

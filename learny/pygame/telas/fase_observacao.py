@@ -12,6 +12,7 @@ class FaseObservacao:
         self.create_connection = create_connection
         self.close_connection = close_connection
         self.usuario_ativo = usuario_ativo
+        self.audio = None
         self.tempo_inicio_tela = None  # Armazena o tempo de início da tela
 
         # Configurações de assets
@@ -72,6 +73,9 @@ class FaseObservacao:
     painel_formiga = None
     painel_alpaca = None
 
+    def receber_dados(self, dados):
+        self.audio = dados
+
     def desenhar(self, tela):
         if self.tempo_inicio_tela is None:  # Só define no início
             self.tempo_inicio_tela = pygame.time.get_ticks()
@@ -106,6 +110,14 @@ class FaseObservacao:
 
                 medalha_iniciando = medalhas.find_one({"nome": "Iniciando!"})
 
+                self.caminho_imagem = 'assets/imagens/btn-atividade-verde.png'
+                self.caminho_imagem2 = 'assets/imagens/btn-conquista.png'
+
+                self.notificacao = {
+                    'nome': 'Atividade Concluída',
+                    'imgNotificacao': self.caminho_imagem,
+                }
+
                 # Buscar o usuário na coleção pelo nome de usuário
                 crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
 
@@ -113,6 +125,21 @@ class FaseObservacao:
                     missoes = crianca_ativa["missoesDiarias"]
                     missao_encontrada = any(
                         missao["nome"] == "Conclua a fase de observação" for missao in missoes
+                    )
+                    self.notificacao = [
+                        {
+                            'nome': 'Atividade Concluída',
+                            'imgNotificacao': self.caminho_imagem,
+                        },
+                        {
+                            'nome': 'Conquista Desbloqueada',
+                            'imgNotificacao': self.caminho_imagem2,
+                        }
+                    ]
+
+                    # Verifica se a medalha já existe na lista
+                    medalha_existe = any(
+                        medalha.get("nome") == medalha_iniciando["nome"] for medalha in crianca_ativa["medalhas"]
                     )
 
                     # Base da atualização
@@ -122,13 +149,33 @@ class FaseObservacao:
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
                         },
                         "$push": {
-                            "medalhas": medalha_iniciando,
+                            "notificacoes": {
+                                "$each": self.notificacao  # Adiciona todos os itens da lista
+                            },
                         },
                     }
+
+                    if len(crianca_ativa["medalhas"]) == 0:
+                        atualizacao["$set"]["medalhaAtiva"] = medalha_iniciando["nome"]
+
+                    # Adiciona a medalha apenas se ela ainda não existir
+                    if not medalha_existe:
+                        atualizacao["$push"]["medalhas"] = medalha_iniciando
 
                     # Adicionar exclusão da missão, se encontrada
                     if missao_encontrada:
                         atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de observação"}}
+                    
+                    # Verifica o progresso do primeiro mundo
+                    progresso_primeiro_mundo = crianca_ativa["progressoMundos"][0].get("mundo1", 0)  # Pega o progresso ou 0, se não existir
+
+                    if progresso_primeiro_mundo <= 100:
+                        progresso_atualizado = progresso_primeiro_mundo + 20
+                        # Garante que o progresso não ultrapasse 100
+                        progresso_atualizado = min(progresso_atualizado, 100)
+                        
+                        # Atualiza o progresso no banco
+                        atualizacao["$set"]["progressoMundos.0.mundo1"] = progresso_atualizado
 
                     # Aplicar a atualização no banco
                     criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
@@ -199,7 +246,8 @@ class FaseObservacao:
         
     def ativar_painel(self, painel, audio):
         self.estados_paineis[painel] = True  # Marca o painel como ativado (colorido)
-        audio.play()  # Toca o áudio
+        if self.audio == "ativado":
+            audio.play()  # Toca o áudio
 
     def atualizar(self, eventos):
         for evento in eventos:

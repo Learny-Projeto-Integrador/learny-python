@@ -27,9 +27,11 @@ class ConclusaoFase:
 
 
     def receber_dados(self, dados):
-        print(f"Dados recebidos: {dados}")
         self.tempo = dados[0]
         self.pontos = dados[1]
+        self.porcentagem_acertos = "100%"
+        if len(dados) > 2:
+            self.porcentagem_acertos = dados[2]
 
     icon_fechar = None
 
@@ -40,7 +42,7 @@ class ConclusaoFase:
         
         pontos_fase = str(self.pontos)
         tempo_conclusao = str(self.tempo)
-        porc_acertos = "100%"
+        porc_acertos = self.porcentagem_acertos
         
         texto_pontos = self.font.render(pontos_fase, True, (0,0,0))
         texto_tempo = self.font.render(tempo_conclusao, True, (0,0,0))

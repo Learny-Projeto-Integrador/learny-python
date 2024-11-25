@@ -41,10 +41,8 @@ def main():
     # Verifica se um argumento foi passado
     if len(sys.argv) > 1:
         usuario_ativo = sys.argv[1]  # Primeiro argumento após o script
-        print(f"Usuário ativo recebido: {usuario_ativo}")
     else:
         usuario_ativo = None
-        print("Nenhum usuário ativo foi recebido.")
 
     # Inicializa o gerenciador de telas
     gerenciador = GerenciadorTelas()
@@ -53,7 +51,7 @@ def main():
     gerenciador.registrar_tela("tela_inicial", TelaInicial(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("fase_numeros", FaseNumeros(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("fase_observacao", FaseObservacao(gerenciador, create_local_connection, close_connection, usuario_ativo))
-    gerenciador.registrar_tela("fase_fala", FaseFala(gerenciador))
+    gerenciador.registrar_tela("fase_fala", FaseFala(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("conclusao_fase", ConclusaoFase(gerenciador))
 
     # Define a tela inicial

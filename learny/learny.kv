@@ -1248,6 +1248,82 @@ WindowManager:
                 size_hint_y: None
                 height: 20
 
+
+            # Layout alternar medalhas
+            MDBoxLayout:
+                id: medalhas
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [30, 0, 30, 0]  # Esquerda, cima, direita, baixo
+                spacing: 0
+                height: self.minimum_height
+
+                MDBoxLayout:
+                    id: painel_principal_medalhas
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: 100
+                    padding: [30,0,0,0]
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: root.radius_painel_principal
+                            source: 'assets/imagens/fundo-gradiente-botoes.png'  # Imagem com gradiente
+                    
+                    Image:
+                        id: img_medalha_principal
+                        size_hint: None, None
+                        width: 46
+                        height: 59
+                        source: ""
+                        pos_hint: {"center_y": 0.5}
+                        allow_stretch: True
+
+                    Widget:
+                        size_hint_x: None
+                        width: 20
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: 5  # Espaço entre as labels
+                        pos_hint: {'center_y': 0.5}
+
+                        MDLabel:
+                            text: "Medalha:"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "14sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                        MDLabel:
+                            id: lbl_nome_medalha_principal
+                            text: "Luiza Carla"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                    MDIconButton:
+                        icon: "assets/imagens/btn-dropdown.png"
+                        icon_size: "40sp"
+                        pos_hint: {'center_y': 0.5}
+                        on_press: root.on_dropdown_click()
+            
+            Widget:
+                size_hint_y: None
+                height: 15
+
             MDBoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
@@ -1290,7 +1366,9 @@ WindowManager:
                             pos_hint: {'center_x': 0.38, 'center_y': 0.5}
 
                         MDSwitch:
-                            size_hint_x: 0.15  # Define a largura do switch para ocupar o espaço restante
+                            id: switch_audio
+                            size_hint_x: None  # Define a largura do switch para ocupar o espaço restante
+                            width: 65
                             pos_hint: {'center_x': 0.65, "center_y": 0.47}  # Centraliza verticalmente o switch
                             on_active: root.on_switch_active(*args)
 
@@ -1932,7 +2010,7 @@ WindowManager:
 
                         RelativeLayout:
                             MDLabel:
-                                text: "Atividades\nSemanais"
+                                text: "Fases\nConcluidas"
                                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                 font_size: "16sp"
                                 theme_text_color: "Custom"
@@ -1943,6 +2021,7 @@ WindowManager:
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.37}
 
                             MDLabel:
+                                id: lbl_fases_concluidas
                                 text: "10"
                                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                 font_size: "26sp"

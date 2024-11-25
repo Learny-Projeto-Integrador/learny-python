@@ -12,10 +12,12 @@ class FaseNumeros:
         self.create_connection = create_connection
         self.close_connection = close_connection
         self.usuario_ativo = usuario_ativo
+        self.audio = None
         self.tempo_inicio_tela = None  # Armazena o tempo de início da tela
 
         # Configurações de assets
         self.assets_dir = os.path.dirname(os.path.abspath(__file__))
+
         self.background_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'imagens', 'tela-fase-numeros.png')
         )
@@ -51,6 +53,9 @@ class FaseNumeros:
     painel20 = None
     painel30 = None
 
+    def receber_dados(self, dados):
+        self.audio = dados
+
     def desenhar(self, tela):
         if self.tempo_inicio_tela is None:  # Só define no início
             self.tempo_inicio_tela = pygame.time.get_ticks()
@@ -74,19 +79,29 @@ class FaseNumeros:
                 # Buscando a coleção de usuários (no caso, a coleção "criancas")
                 criancas = db["criancas"]
 
+                self.caminho_imagem = 'assets/imagens/btn-atividade-amarelo.png'
+
+                self.notificacao = {
+                    'nome': 'Atividade Concluída',
+                    'imgNotificacao': self.caminho_imagem,
+                }
+
                 # Buscar o usuário na coleção pelo nome de usuário
                 crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
                 if crianca_ativa:
                     # Atualizar os pontos e fases concluídas
                     criancas.update_one(
-                        {"_id": crianca_ativa["_id"]},
-                        {
-                            "$set": {
-                                "pontos": crianca_ativa["pontos"] + pontos_fase,
-                                "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
-                            }
+                    {"_id": crianca_ativa["_id"]},
+                    {
+                        "$set": {
+                            "pontos": crianca_ativa["pontos"] + pontos_fase,
+                            "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
                         },
-                    )
+                        "$push": {
+                            "notificacoes": self.notificacao,
+                        },
+                    }
+                )
                 else:
                     print(f"Usuário '{self.usuario_ativo}' não encontrado na coleção 'criancas'.")
             else:
@@ -135,7 +150,7 @@ class FaseNumeros:
         finally:
             self.close_connection(client)
 
-    def trocar_tela(self):
+    def trocar_tela(self, num_painel):
         tempo_atual = pygame.time.get_ticks()
         tempo_decorrido = (tempo_atual - self.tempo_inicio_tela) / 1000  # Em segundos
         
@@ -143,11 +158,23 @@ class FaseNumeros:
         minutos, segundos = divmod(int(tempo_decorrido), 60)
         tempo_formatado = f"{minutos:02}:{segundos:02}"
 
-        pontos_fase = 100
+        pontos_fase = 0
+        porcentagem_acertos = "0%"
+        
+        if num_painel == 10:
+            pontos_fase = 100
+            porcentagem_acertos = "100%"
+            if self.audio:
+                self.audio_n10.play()   
+        elif num_painel == 20 and self.audio:
+            self.audio_n20.play() 
+        elif num_painel == 30 and self.audio:
+            self.audio_n30.play() 
+
         self.inserir_pontuacao(pontos_fase)
         self.atualizar_ranking()
         
-        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase])
+        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase, porcentagem_acertos])
 
         self.tempo_inicio_tela = None
 
@@ -166,17 +193,14 @@ class FaseNumeros:
                         areas_clicaveis = [
                             {"area": self.painel5_esquerda, "acao": lambda: self.audio_n5.play()},
                             {"area": self.painel5_direita, "acao": lambda: self.audio_n5.play()},
-                            {"area": self.painel10, "acao": lambda: self.audio_n10.play()},
-                            {"area": self.painel20, "acao": lambda: self.audio_n20.play()},
-                            {"area": self.painel30, "acao": lambda: self.audio_n30.play()},
+                            {"area": self.painel10, "acao": lambda: self.trocar_tela(10)},
+                            {"area": self.painel20, "acao": lambda: self.trocar_tela(20)},
+                            {"area": self.painel30, "acao": lambda: self.trocar_tela(30)},
                         ]
 
                         # Verifica em qual área o clique ocorreu
                         for item in areas_clicaveis:
                             if item["area"].collidepoint(x, y):  # Verifica se o clique foi na área
-                                if item["area"] == self.painel10:
-                                    item["acao"]()  # Executa a ação associada
-                                    self.trocar_tela()
                                 item["acao"]()  # Executa a ação associada
                                 break
 

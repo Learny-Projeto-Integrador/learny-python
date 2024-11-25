@@ -9,6 +9,8 @@ class GerenciadorTelas:
     def trocar_tela(self, nome, dados=None):
         if nome in self.telas:
             self.tela_atual = self.telas[nome]
+            if nome == "tela_inicial" and hasattr(self.tela_atual, 'acessar_banco'):
+                self.tela_atual.acessar_banco()  # Atualiza os dados da tela inicial
             if dados:
                 self.tela_atual.receber_dados(dados)
         else:
