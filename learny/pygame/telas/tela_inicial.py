@@ -17,6 +17,7 @@ class TelaInicial:
         self.dados_usuario = None
         self.acessar_banco()
         self.audio = self.dados_usuario["audio"]
+        self.faseAtual = self.dados_usuario["faseAtual"]
         self.scroll_y = 0
 
         # Configurações de assets
@@ -84,7 +85,7 @@ class TelaInicial:
         correndo_esquerda = [(48, 0), (48, 48), (48, 96), (48, 144)]
         frame_size = (48, 48)
         scale_factor = 1.5
-        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador, self.audio)
+        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador, self.audio, self.faseAtual)
 
     def desenhar(self, tela):
         # Atualiza os sprites no content_surface
@@ -152,6 +153,7 @@ class TelaInicial:
                 'medalhas': usuario_banco["medalhas"],
                 'rankAtual': usuario_banco["rankAtual"],
                 'medalhaAtiva': usuario_banco["medalhaAtiva"],
+                'faseAtual': usuario_banco["faseAtual"],
                 'audio': usuario_banco["audio"]
             }
         return None
@@ -280,7 +282,7 @@ class TelaInicial:
         self.scrollbar_y = self.scroll_y * (ALTURA / self.scrollable_height)
 
 class Personagem(pygame.sprite.Sprite):
-    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador, audio):
+    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador, audio, faseAtual):
         super().__init__()
         self.sprite_sheet = pygame.image.load(sprite_sheet_path).convert_alpha()
 
@@ -296,15 +298,18 @@ class Personagem(pygame.sprite.Sprite):
         self.atual = 0
         self.image = self.sprites[self.atual]
         self.rect = self.image.get_rect()
-        self.rect.topleft = (75, 720)  # Posição inicial
-        self.animar = False
-        self.velocidade = 2
+
+        # Pontos de movimento
+        self.pontos = [(190, 635), (253, 488), (190, 350), (65, 275)]  # Pontos na ordem
+        self.faseAtual = faseAtual  # Fase inicial
+        self.definir_posicao_inicial()  # Define a posição inicial baseada na fase
 
         # Gerenciamento de movimento
         self.destino = None
         self.fase_destino = None
-        self.pontos = [(190, 635), (253, 488), (190, 350), (65, 275)]  # Pontos na ordem
         self.caminho = []  # Pontos intermediários para o movimento em cadeia
+        self.animar = False
+        self.velocidade = 2
 
         # Referências externas
         self.gerenciador = gerenciador
@@ -319,6 +324,21 @@ class Personagem(pygame.sprite.Sprite):
             frame = pygame.transform.scale(frame, (int(frame_size[0] * scale_factor), int(frame_size[1] * scale_factor)))
             frames.append(frame)
         return frames
+
+    def definir_posicao_inicial(self):
+        """
+        Define a posição inicial e direção com base na fase atual.
+        """
+        if self.faseAtual == 0:
+            self.rect.topleft = (75, 720)  # Posição inicial padrão
+            self.image = self.animacoes["correndo_direita"][0]  # Sprite parado olhando para a direita
+        elif 1 <= self.faseAtual <= len(self.pontos):
+            self.rect.topleft = self.pontos[self.faseAtual - 1]  # Posição correspondente ao ponto da fase
+            if self.faseAtual in [3, 4]:
+                self.image = self.animacoes["correndo_esquerda"][0]  # Sprite parado olhando para a esquerda
+            else:
+                self.image = self.animacoes["correndo_direita"][0]  # Sprite parado olhando para a direita
+
 
     def set_estado(self, estado):
         if estado in self.animacoes and estado != self.estado:

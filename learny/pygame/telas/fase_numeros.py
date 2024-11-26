@@ -96,6 +96,7 @@ class FaseNumeros:
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
+                            "faseAtual": 2,
                         },
                         "$push": {
                             "notificacoes": self.notificacao,

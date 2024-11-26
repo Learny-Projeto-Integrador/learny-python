@@ -147,6 +147,7 @@ class FaseObservacao:
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
+                            "faseAtual": 1,
                         },
                         "$push": {
                             "notificacoes": {

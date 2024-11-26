@@ -126,7 +126,8 @@ class FaseFala:
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
-                            "medalhaAtiva": medalha_iniciando["nome"]
+                            "medalhaAtiva": medalha_iniciando["nome"],
+                            "faseAtual": 3,
                         },
                         "$push": {
                             "medalhas": medalha_iniciando,

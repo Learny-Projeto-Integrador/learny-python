@@ -191,6 +191,7 @@ class FaseMemoria:
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
+                            "faseAtual": 4,
                         },
                         "$push": {
                             "notificacoes": {

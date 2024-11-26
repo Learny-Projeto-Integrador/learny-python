@@ -25,6 +25,7 @@ from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import StringProperty, ListProperty, NumericProperty
 from os.path import expanduser, join
+from bson.objectid import ObjectId
 
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
@@ -483,7 +484,7 @@ class TelaCadastro(GradienteScreen):
                             'ranking': 'habilitado',
                             'desafios': 'permitidos',
                             'rankAtual': "",
-                            'faseAtual': "",
+                            'faseAtual': 0,
                             'medalhaAtiva': "",
                             'audio': "desativado",
                             'progressoMundos': [
@@ -1721,6 +1722,70 @@ class Learny(MDApp):
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
+    
+    # Dados das coleções
+    medalhas_data = [
+        {
+            "_id": {"$oid": "67425204298d882dd65dca4f"},
+            "nome": "Iniciando!",
+            "descricao": "Terminou a primeira fase",
+            "iconMedalha": "assets/imagens/icon-medalha-verde.png"
+        },
+        {
+            "_id": {"$oid": "674252c1298d882dd65dca50"},
+            "nome": "A todo o vapor!",
+            "descricao": "Terminou quatro fases",
+            "iconMedalha": "assets/imagens/icon-medalha-vermelha.png"
+        },
+        {
+            "_id": {"$oid": "674252f7298d882dd65dca51"},
+            "nome": "Mundo Concluído!",
+            "descricao": "Terminou o primeiro mundo",
+            "iconMedalha": "assets/imagens/icon-medalha-azul.png"
+        }
+    ]
+
+    missoes_data = [
+        {"_id": {"$oid": "67423c59298d882dd65dca45"}, "nome": "Conclua 3 fases"},
+        {"_id": {"$oid": "67423c93298d882dd65dca46"}, "nome": "Conclua a fase de observação"},
+        {"_id": {"$oid": "67423cac298d882dd65dca47"}, "nome": "Conclua a fase de escuta"},
+        {"_id": {"$oid": "67423cc3298d882dd65dca48"}, "nome": "Conclua a fase de números"},
+        {"_id": {"$oid": "67423cea298d882dd65dca49"}, "nome": "Conclua um mundo hoje"}
+    ]
+
+    # Função para inicializar as coleções
+    def initialize_collections(self, db):
+        collections = {
+            "medalhas": self.medalhas_data,
+            "missoes": self.missoes_data
+        }
+        
+        for collection_name, initial_data in collections.items():
+            if collection_name not in db.list_collection_names():
+                collection = db[collection_name]
+                # Converter os IDs para ObjectId antes de inserir
+                formatted_data = [
+                    {**doc, "_id": ObjectId(doc["_id"]["$oid"])} for doc in initial_data
+                ]
+                collection.insert_many(formatted_data)
+                # print(f"Coleção '{collection_name}' criada e populada.")
+            else:
+                # print(f"Coleção '{collection_name}' já existe.")
+                pass
+
+    def on_start(self):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+
+            if db is not None:
+                self.initialize_collections(db)
+                    
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar os dados:", e)
+        finally:
+            close_connection(client)
 
     def iniciar_verificacao(self):
         # Inicia um relógio para verificar o arquivo a cada 0.5 segundo
