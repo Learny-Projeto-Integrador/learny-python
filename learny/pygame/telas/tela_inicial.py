@@ -208,7 +208,7 @@ class TelaInicial:
                             # Áreas circulares para movimentação do personagem
                             {
                                 "area": (225, 675, 40),
-                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_observacao") or self.personagem.set_estado("correndo_direita"),
+                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_memoria") or self.personagem.set_estado("correndo_direita"),
                                 "tipo": "circulo",
                             },
                             {
@@ -291,7 +291,7 @@ class Personagem(pygame.sprite.Sprite):
         }
 
         # Estado inicial
-        self.estado = "correndo_direita"  # Estado inicial
+        self.estado = "correndo_direita"
         self.sprites = self.animacoes[self.estado]
         self.atual = 0
         self.image = self.sprites[self.atual]
@@ -300,9 +300,14 @@ class Personagem(pygame.sprite.Sprite):
         self.animar = False
         self.velocidade = 2
 
-        # Referência ao gerenciador
+        # Gerenciamento de movimento
+        self.destino = None
+        self.fase_destino = None
+        self.pontos = [(190, 635), (253, 488), (190, 350), (65, 275)]  # Pontos na ordem
+        self.caminho = []  # Pontos intermediários para o movimento em cadeia
+
+        # Referências externas
         self.gerenciador = gerenciador
-        self.fase_destino = None  # Nova variável para armazenar a fase de destino
         self.audio = audio
 
     def carregar_frames(self, frame_positions, frame_size, scale_factor):
@@ -322,20 +327,40 @@ class Personagem(pygame.sprite.Sprite):
             self.atual = 0
 
     def mover_para(self, destino, fase_destino):
-        self.destino = destino
-        self.fase_destino = fase_destino  # Define a fase de destino
+        if destino not in self.pontos:
+            raise ValueError("Destino inválido. O ponto não está na lista de pontos válidos.")
+
+        # Define o índice do ponto atual e do destino
+        posicao_atual = self.rect.topleft
+        indice_atual = min(range(len(self.pontos)), key=lambda i: (self.pontos[i][0] - posicao_atual[0])**2 + (self.pontos[i][1] - posicao_atual[1])**2)
+        indice_destino = self.pontos.index(destino)
+
+        # Define os pontos intermediários no caminho
+        if indice_atual <= indice_destino:
+            self.caminho = self.pontos[indice_atual:indice_destino + 1]
+        else:
+            self.caminho = self.pontos[indice_atual:indice_destino - 1:-1]
+
+        # Verifica se já está no destino
+        if not self.caminho:
+            self.destino = None
+            self.animar = False
+            return
+
+        self.destino = self.caminho.pop(0)  # Primeiro ponto no caminho
+        self.fase_destino = fase_destino
         self.animar = True
 
     def update(self):
         # Animação
         if self.animar:
-            self.atual += 0.2  # Velocidade da animação
+            self.atual += 0.2
             if self.atual >= len(self.sprites):
                 self.atual = 0
             self.image = self.sprites[int(self.atual)]
 
         # Movimento
-        if hasattr(self, "destino"):
+        if self.destino:
             destino_x, destino_y = self.destino
             dx = destino_x - self.rect.x
             dy = destino_y - self.rect.y
@@ -346,14 +371,17 @@ class Personagem(pygame.sprite.Sprite):
                 self.rect.x += deslocamento_x
                 self.rect.y += deslocamento_y
             else:
-                # Chegou ao destino
+                # Chegou ao ponto atual do caminho
                 self.rect.topleft = self.destino
-                self.animar = False
-                self.atual = 0  # Volta para o primeiro frame da animação
-                self.image = self.sprites[self.atual]  # Garante que o frame inicial é exibido
 
-                # Troca para a fase de destino usando o gerenciador
-                if self.fase_destino:
-                    self.gerenciador.trocar_tela(self.fase_destino, self.audio)
-                    self.fase_destino = None  # Reseta a fase destino para evitar novas trocas
-
+                if self.caminho:
+                    self.destino = self.caminho.pop(0)  # Próximo ponto no caminho
+                else:
+                    # Chegou ao destino final
+                    self.destino = None  # Define que não há mais destinos
+                    self.animar = False
+                    self.atual = 0
+                    self.image = self.sprites[self.atual]  # Garante que o frame inicial é exibido
+                    if self.fase_destino:
+                        self.gerenciador.trocar_tela(self.fase_destino, self.audio)
+                        self.fase_destino = None

@@ -5,6 +5,7 @@ from telas.tela_inicial import TelaInicial
 from telas.fase_numeros import FaseNumeros
 from telas.fase_observacao import FaseObservacao
 from telas.fase_fala import FaseFala
+from telas.fase_memoria import FaseMemoria
 from telas.conclusao_fase import ConclusaoFase
 from pymongo import MongoClient
 from pymongo.errors import PyMongoError
@@ -52,6 +53,7 @@ def main():
     gerenciador.registrar_tela("fase_numeros", FaseNumeros(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("fase_observacao", FaseObservacao(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("fase_fala", FaseFala(gerenciador, create_local_connection, close_connection, usuario_ativo))
+    gerenciador.registrar_tela("fase_memoria", FaseMemoria(gerenciador, create_local_connection, close_connection, usuario_ativo))
     gerenciador.registrar_tela("conclusao_fase", ConclusaoFase(gerenciador))
 
     # Define a tela inicial
