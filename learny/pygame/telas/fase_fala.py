@@ -12,6 +12,8 @@ class FaseFala:
         self.create_connection = create_connection
         self.close_connection = close_connection
         self.usuario_ativo = usuario_ativo
+        self.mostrar_painel_read = True
+        self.medalha_ativa = None
         self.audio = None
         self.tempo_inicio_tela = None  # Armazena o tempo de início da tela
 
@@ -50,6 +52,9 @@ class FaseFala:
         self.icon_confirmar_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'icons', 'icone-confirmar-vermelho.png')
         )
+        self.icon_dica_image = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-dica2.png')
+        )
         self.audio_red = pygame.mixer.Sound(
             os.path.join(self.assets_dir, 'assets', 'audios', 'red.wav')
         )
@@ -68,7 +73,8 @@ class FaseFala:
     painel_heard = None
 
     def receber_dados(self, dados):
-        self.audio = dados
+        self.audio = dados[0]
+        self.medalha_ativa = dados[1]
 
     def desenhar(self, tela):
         if self.tempo_inicio_tela is None:  # Só define no início
@@ -86,9 +92,11 @@ class FaseFala:
         self.painel_red = tela.blit(painel_red_img, (50, 435)) 
         self.painel_head = tela.blit(painel_head_img, (208, 435))
         self.painel_heard = tela.blit(painel_heard_img, (50, 520))
-        self.painel_read = tela.blit(painel_read_img, (208, 520))
+        if self.mostrar_painel_read:
+            self.painel_read = tela.blit(painel_read_img, (208, 520))
         
         self.icon_confirmar = tela.blit(self.icon_confirmar_image, (180, 630))
+        self.icon_dica = tela.blit(self.icon_dica_image, (135, 635))
 
         # Atualizar a tela
         pygame.display.flip()
@@ -96,18 +104,12 @@ class FaseFala:
     # Função para inserir pontuação
     def inserir_pontuacao(self, pontos_fase):
         client, db = self.create_connection()  # Obter conexão existente
-
+        
         try:
             if db is not None:
                 # Buscando a coleção de usuários (no caso, a coleção "criancas")
                 criancas = db["criancas"]
-                medalhas = db["medalhas"]
-
-                medalha_iniciando = medalhas.find_one({"nome": "Iniciando!"})
-
-                # Buscar o usuário na coleção pelo nome de usuário
-                crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
-
+                
                 self.caminho_imagem = 'assets/imagens/btn-atividade-vermelho.png'
 
                 self.notificacao = {
@@ -115,29 +117,43 @@ class FaseFala:
                     'imgNotificacao': self.caminho_imagem,
                 }
 
+                # Buscar o usuário na coleção pelo nome de usuário
+                crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
+
                 if crianca_ativa:
                     missoes = crianca_ativa["missoesDiarias"]
                     missao_encontrada = any(
-                        missao["nome"] == "Conclua a fase de observação" for missao in missoes
+                        missao["nome"] == "Conclua a fase de escuta" for missao in missoes
                     )
-
+                    
+                    print(pontos_fase)
+                    print(crianca_ativa["pontos"] + pontos_fase)
                     # Base da atualização
                     atualizacao = {
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
-                            "medalhaAtiva": medalha_iniciando["nome"],
                             "faseAtual": 3,
                         },
                         "$push": {
-                            "medalhas": medalha_iniciando,
-                            "notificacoes": self.notificacao,
+                            "notificacoes": self.notificacao,  # Adiciona apenas um item
                         },
                     }
 
                     # Adicionar exclusão da missão, se encontrada
                     if missao_encontrada:
-                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de observação"}}
+                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de escuta"}}
+                    
+                    # Verifica o progresso do primeiro mundo
+                    progresso_primeiro_mundo = crianca_ativa["progressoMundos"][0].get("mundo1", 0)  # Pega o progresso ou 0, se não existir
+
+                    if progresso_primeiro_mundo <= 100:
+                        progresso_atualizado = progresso_primeiro_mundo + 25
+                        # Garante que o progresso não ultrapasse 100
+                        progresso_atualizado = min(progresso_atualizado, 100)
+                        
+                        # Atualiza o progresso no banco
+                        atualizacao["$set"]["progressoMundos.0.mundo1"] = progresso_atualizado
 
                     # Aplicar a atualização no banco
                     criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
@@ -200,12 +216,13 @@ class FaseFala:
         
         pontos_fase = 0
         porcentagem_acertos = "0%"
-        self.inserir_pontuacao(pontos_fase)
-        self.atualizar_ranking()
         
         if self.estados_paineis["red"]:
             pontos_fase = 100
-            porcentagem_acertos = "100%"  
+            porcentagem_acertos = "100%" 
+            
+        self.inserir_pontuacao(pontos_fase)
+        self.atualizar_ranking()
         
         self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase, porcentagem_acertos])
 
@@ -221,6 +238,10 @@ class FaseFala:
     def tocar_audio(self):
         if self.audio:
             self.audio_red.play()
+            
+    def ativar_dica(self):
+        #if self.medalha_ativa == "Mundo Concluído!":
+        self.mostrar_painel_read = False  # Desative a exibição do painel 30
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -240,7 +261,8 @@ class FaseFala:
                             {"area": self.painel_head, "acao": lambda: self.ativar_painel("head")},
                             {"area": self.painel_heard, "acao": lambda: self.ativar_painel("heard")},
                             {"area": self.painel_read, "acao": lambda: self.ativar_painel("read")},
-                            {"area": self.icon_confirmar, "acao": lambda: self.trocar_tela()}
+                            {"area": self.icon_confirmar, "acao": lambda: self.trocar_tela()},
+                            {"area": self.icon_dica, "acao": lambda: self.ativar_dica()}
                         ]
 
 

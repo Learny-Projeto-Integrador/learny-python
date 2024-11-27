@@ -18,6 +18,7 @@ class TelaInicial:
         self.acessar_banco()
         self.audio = self.dados_usuario["audio"]
         self.faseAtual = self.dados_usuario["faseAtual"]
+        self.medalha_ativa = self.dados_usuario["medalhaAtiva"]
         self.scroll_y = 0
 
         # Configurações de assets
@@ -85,7 +86,7 @@ class TelaInicial:
         correndo_esquerda = [(48, 0), (48, 48), (48, 96), (48, 144)]
         frame_size = (48, 48)
         scale_factor = 1.5
-        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador, self.audio, self.faseAtual)
+        return Personagem(sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, self.gerenciador, self.audio, self.faseAtual, self.medalha_ativa)
 
     def desenhar(self, tela):
         # Atualiza os sprites no content_surface
@@ -210,7 +211,7 @@ class TelaInicial:
                             # Áreas circulares para movimentação do personagem
                             {
                                 "area": (225, 675, 40),
-                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_memoria") or self.personagem.set_estado("correndo_direita"),
+                                "acao": lambda: self.personagem.mover_para((190, 635),"fase_observacao") or self.personagem.set_estado("correndo_direita"),
                                 "tipo": "circulo",
                             },
                             {
@@ -225,7 +226,7 @@ class TelaInicial:
                             },
                             {
                                 "area": (100, 313, 50),
-                                "acao": lambda: self.personagem.mover_para((65, 275),"fase_fala") or self.personagem.set_estado("correndo_esquerda"),
+                                "acao": lambda: self.personagem.mover_para((65, 275),"fase_memoria") or self.personagem.set_estado("correndo_esquerda"),
                                 "tipo": "circulo",
                             }
                         ]
@@ -282,7 +283,7 @@ class TelaInicial:
         self.scrollbar_y = self.scroll_y * (ALTURA / self.scrollable_height)
 
 class Personagem(pygame.sprite.Sprite):
-    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador, audio, faseAtual):
+    def __init__(self, sprite_sheet_path, correndo_direita, correndo_esquerda, frame_size, scale_factor, gerenciador, audio, faseAtual, medalha_ativa):
         super().__init__()
         self.sprite_sheet = pygame.image.load(sprite_sheet_path).convert_alpha()
 
@@ -302,6 +303,7 @@ class Personagem(pygame.sprite.Sprite):
         # Pontos de movimento
         self.pontos = [(190, 635), (253, 488), (190, 350), (65, 275)]  # Pontos na ordem
         self.faseAtual = faseAtual  # Fase inicial
+        self.medalha_ativa = medalha_ativa
         self.definir_posicao_inicial()  # Define a posição inicial baseada na fase
 
         # Gerenciamento de movimento
@@ -403,5 +405,5 @@ class Personagem(pygame.sprite.Sprite):
                     self.atual = 0
                     self.image = self.sprites[self.atual]  # Garante que o frame inicial é exibido
                     if self.fase_destino:
-                        self.gerenciador.trocar_tela(self.fase_destino, self.audio)
+                        self.gerenciador.trocar_tela(self.fase_destino, [self.audio, self.medalha_ativa])
                         self.fase_destino = None

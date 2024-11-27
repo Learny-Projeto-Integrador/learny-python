@@ -74,7 +74,7 @@ class FaseObservacao:
     painel_alpaca = None
 
     def receber_dados(self, dados):
-        self.audio = dados
+        self.audio = dados[0]
 
     def desenhar(self, tela):
         if self.tempo_inicio_tela is None:  # Só define no início
@@ -171,7 +171,7 @@ class FaseObservacao:
                     progresso_primeiro_mundo = crianca_ativa["progressoMundos"][0].get("mundo1", 0)  # Pega o progresso ou 0, se não existir
 
                     if progresso_primeiro_mundo <= 100:
-                        progresso_atualizado = progresso_primeiro_mundo + 20
+                        progresso_atualizado = progresso_primeiro_mundo + 25
                         # Garante que o progresso não ultrapasse 100
                         progresso_atualizado = min(progresso_atualizado, 100)
                         
@@ -247,6 +247,7 @@ class FaseObservacao:
         
     def ativar_painel(self, painel, audio):
         self.estados_paineis[painel] = True  # Marca o painel como ativado (colorido)
+
         if self.audio == "ativado":
             audio.play()  # Toca o áudio
 

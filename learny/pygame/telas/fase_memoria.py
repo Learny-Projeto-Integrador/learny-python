@@ -1,6 +1,7 @@
 import pygame
 import os
 from pygame.locals import *
+import random
 
 # Configurações gerais
 LARGURA = 400
@@ -59,6 +60,9 @@ class FaseMemoria:
         self.card_cobra_figura_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'imagens', 'card-cobra-figura.png')
         )
+        self.icon_dica_image = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-dica2.png')
+        )
         self.audio_macaco = pygame.mixer.Sound(
             os.path.join(self.assets_dir, 'assets', 'audios', 'monkey.wav')
         )
@@ -97,16 +101,19 @@ class FaseMemoria:
             if (carta1, carta2) in pares_correspondentes or (carta2, carta1) in pares_correspondentes:
                 self.pares_travados.add(carta1)
                 self.pares_travados.add(carta2)
+                self.cartas_ativas = []  # Limpa as cartas ativas
+
+                # Verifica se todas as cartas estão travadas
+                if len(self.pares_travados) == len(self.estados_paineis):
+                    # Configura o atraso de 1 segundo antes de trocar a tela
+                    pygame.time.set_timer(pygame.USEREVENT + 1, 1000)  # Define um evento exclusivo para troca de tela
             else:
                 # Adiciona as cartas para serem desviradas
                 self.cartas_para_desvirar = [carta1, carta2]
-                pygame.time.set_timer(pygame.USEREVENT, 1000)  # Configura o atraso de 1 segundo
+                pygame.time.set_timer(pygame.USEREVENT, 1000)  # Configura o atraso de 1 segundo para desvirar as cartas
 
             self.cartas_ativas = []  # Limpa as cartas ativas
 
-            # Verifica se todas as cartas estão travadas
-            if len(self.pares_travados) == len(self.estados_paineis):
-                self.trocar_tela()
 
     def receber_dados(self, dados):
         self.audio = dados
@@ -125,9 +132,9 @@ class FaseMemoria:
             card_amarelo2_img = self.card_cobra_texto_image if self.estados_paineis["amarelo2"] else self.card_amarelo_image
             card_azul_img = self.card_passaro_texto_image if self.estados_paineis["azul"] else self.card_azul_image
         else:
-            card_vermelho_img = self.card_macaco_image if self.estados_paineis["vermelho"] else self.card_vermelho_image
-            card_vermelho2_img = self.card_passaro_image if self.estados_paineis["vermelho2"] else self.card_vermelho_image
-            card_verde_img = self.card_cobra_image if self.estados_paineis["verde"] else self.card_verde_image
+            card_vermelho_img = self.card_macaco_texto_image if self.estados_paineis["vermelho"] else self.card_vermelho_image
+            card_vermelho2_img = self.card_passaro_texto_image if self.estados_paineis["vermelho2"] else self.card_vermelho_image
+            card_verde_img = self.card_cobra_texto_image if self.estados_paineis["verde"] else self.card_verde_image
             card_amarelo_img = self.card_macaco_image if self.estados_paineis["amarelo"] else self.card_amarelo_image
             card_amarelo2_img = self.card_cobra_image if self.estados_paineis["amarelo2"] else self.card_amarelo_image
             card_azul_img = self.card_passaro_image if self.estados_paineis["azul"] else self.card_azul_image
@@ -138,6 +145,8 @@ class FaseMemoria:
         self.card_vermelho2 = tela.blit(card_vermelho2_img, (220, 270))
         self.card_azul = tela.blit(card_azul_img, (220, 405)) 
         self.card_amarelo2 = tela.blit(card_amarelo2_img, (220, 540))
+        
+        self.icon_dica = tela.blit(self.icon_dica_image, (175, 655))
 
         # Atualizar a tela
         pygame.display.flip()
@@ -152,7 +161,8 @@ class FaseMemoria:
                 criancas = db["criancas"]
                 medalhas = db["medalhas"]
 
-                medalha_iniciando = medalhas.find_one({"nome": "Iniciando!"})
+                medalha_vapor = medalhas.find_one({"nome": "A todo o vapor!"})
+                medalha_mundo = medalhas.find_one({"nome": "Mundo Concluído!"})
 
                 self.caminho_imagem = 'assets/imagens/btn-atividade-verde.png'
                 self.caminho_imagem2 = 'assets/imagens/btn-conquista.png'
@@ -168,7 +178,7 @@ class FaseMemoria:
                 if crianca_ativa:
                     missoes = crianca_ativa["missoesDiarias"]
                     missao_encontrada = any(
-                        missao["nome"] == "Conclua a fase de observação" for missao in missoes
+                        missao["nome"] == "Conclua a fase de memória" for missao in missoes
                     )
                     self.notificacao = [
                         {
@@ -178,12 +188,19 @@ class FaseMemoria:
                         {
                             'nome': 'Conquista Desbloqueada',
                             'imgNotificacao': self.caminho_imagem2,
+                        },
+                        {
+                            'nome': 'Conquista Desbloqueada',
+                            'imgNotificacao': self.caminho_imagem2,
                         }
                     ]
 
-                    # Verifica se a medalha já existe na lista
+                    # Lista de medalhas que deseja verificar
+                    medalhas_a_verificar = [medalha_vapor["nome"], medalha_mundo["nome"]]
+
+                    # Verifica se alguma das medalhas já existe na lista
                     medalha_existe = any(
-                        medalha.get("nome") == medalha_iniciando["nome"] for medalha in crianca_ativa["medalhas"]
+                        medalha.get("nome") in medalhas_a_verificar for medalha in crianca_ativa["medalhas"]
                     )
 
                     # Base da atualização
@@ -191,7 +208,7 @@ class FaseMemoria:
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
-                            "faseAtual": 4,
+                            "faseAtual": 0,
                         },
                         "$push": {
                             "notificacoes": {
@@ -200,22 +217,23 @@ class FaseMemoria:
                         },
                     }
 
-                    if len(crianca_ativa["medalhas"]) == 0:
-                        atualizacao["$set"]["medalhaAtiva"] = medalha_iniciando["nome"]
-
-                    # Adiciona a medalha apenas se ela ainda não existir
-                    if not medalha_existe:
-                        atualizacao["$push"]["medalhas"] = medalha_iniciando
-
                     # Adicionar exclusão da missão, se encontrada
                     if missao_encontrada:
-                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de observação"}}
-                    
+                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de memória"}}
+                        
+                    # Adiciona as medalhas apenas se elas ainda não existirem
+                    if not medalha_existe:
+                        atualizacao["$push"] = {
+                            "medalhas": {
+                                "$each": [medalha_vapor, medalha_mundo]
+                            }
+                        }
+
                     # Verifica o progresso do primeiro mundo
                     progresso_primeiro_mundo = crianca_ativa["progressoMundos"][0].get("mundo1", 0)  # Pega o progresso ou 0, se não existir
 
                     if progresso_primeiro_mundo <= 100:
-                        progresso_atualizado = progresso_primeiro_mundo + 20
+                        progresso_atualizado = progresso_primeiro_mundo + 25
                         # Garante que o progresso não ultrapasse 100
                         progresso_atualizado = min(progresso_atualizado, 100)
                         
@@ -282,8 +300,8 @@ class FaseMemoria:
         tempo_formatado = f"{minutos:02}:{segundos:02}"
         
         pontos_fase = 100
-        #self.inserir_pontuacao(pontos_fase)
-        #self.atualizar_ranking()
+        self.inserir_pontuacao(pontos_fase)
+        self.atualizar_ranking()
         
         self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase])
 
@@ -300,6 +318,47 @@ class FaseMemoria:
 
         # Verifica se há um par formado
         self.verificar_par()
+        
+    def ativar_dica(self):
+        # Verifica se a medalha foi concluída e se a dica já não foi usada
+        if self.medalha_ativa == "Mundo Concluído!" and not getattr(self, "dica_usada", False):
+            # Lista de pares possíveis com seus áudios correspondentes
+            pares_correspondentes = {
+                ("vermelho", "amarelo"): self.audio_macaco,
+                ("amarelo", "vermelho"): self.audio_macaco,
+                ("vermelho2", "azul"): self.audio_passaro,
+                ("azul", "vermelho2"): self.audio_passaro,
+                ("verde", "amarelo2"): self.audio_cobra,
+                ("amarelo2", "verde"): self.audio_cobra
+            }
+
+            # Identifica pares não travados
+            pares_disponiveis = [
+                (carta1, carta2) for carta1, carta2 in pares_correspondentes.keys()
+                if carta1 not in self.pares_travados and carta2 not in self.pares_travados
+            ]
+
+            if pares_disponiveis:
+                # Seleciona um par aleatório
+                carta1, carta2 = random.choice(pares_disponiveis)
+
+                # Ativa os dois painéis correspondentes
+                self.estados_paineis[carta1] = True
+                self.estados_paineis[carta2] = True
+
+                # Adiciona ao conjunto de pares travados
+                self.pares_travados.add(carta1)
+                self.pares_travados.add(carta2)
+
+                # Toca o áudio correspondente
+                audio = pares_correspondentes.get((carta1, carta2))
+                if audio:
+                    audio.play()
+
+                # Marca a dica como usada
+                self.dica_usada = True
+
+
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -312,6 +371,11 @@ class FaseMemoria:
                     self.estados_paineis[carta] = False
                 self.cartas_para_desvirar = []  # Limpa a lista após desvirar
                 pygame.time.set_timer(pygame.USEREVENT, 0)  # Cancela o timer
+                
+            elif evento.type == pygame.USEREVENT + 1:
+                # Troca a tela após o atraso
+                self.trocar_tela()
+                pygame.time.set_timer(pygame.USEREVENT + 1, 0)  # Cancela o timer
             
             # Detecta clique do mouse
             if evento.type == pygame.MOUSEBUTTONDOWN:
@@ -327,6 +391,7 @@ class FaseMemoria:
                             {"area": self.card_amarelo, "acao": lambda: self.ativar_painel("amarelo", self.audio_macaco)},
                             {"area": self.card_amarelo2, "acao": lambda: self.ativar_painel("amarelo2", self.audio_cobra)},
                             {"area": self.card_azul, "acao": lambda: self.ativar_painel("azul", self.audio_passaro)},
+                            {"area": self.icon_dica, "acao": lambda: self.ativar_dica()},
                         ]
 
 

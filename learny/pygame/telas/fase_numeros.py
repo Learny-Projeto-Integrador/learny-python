@@ -13,6 +13,9 @@ class FaseNumeros:
         self.close_connection = close_connection
         self.usuario_ativo = usuario_ativo
         self.audio = None
+        # Inicialize o atributo no construtor da classe (init)
+        self.mostrar_painel30 = True
+        self.medalha_ativa = None
         self.tempo_inicio_tela = None  # Armazena o tempo de início da tela
 
         # Configurações de assets
@@ -33,6 +36,9 @@ class FaseNumeros:
         self.painel_n30_image = pygame.image.load(
             os.path.join(self.assets_dir, 'assets', 'imagens', 'painel-num-30.png')
         )
+        self.icon_dica_image = pygame.image.load(
+            os.path.join(self.assets_dir, 'assets', 'icons', 'icon-dica2.png')
+        )
         self.audio_n5 = pygame.mixer.Sound(
             os.path.join(self.assets_dir, 'assets', 'audios', 'five.wav')
         )
@@ -52,20 +58,25 @@ class FaseNumeros:
     painel10 = None
     painel20 = None
     painel30 = None
+    icon_dica = None
 
     def receber_dados(self, dados):
-        self.audio = dados
+        self.audio = dados[0]
+        self.medalha_ativa = dados[1]
 
     def desenhar(self, tela):
         if self.tempo_inicio_tela is None:  # Só define no início
             self.tempo_inicio_tela = pygame.time.get_ticks()
         
         tela.blit(self.background_image, (0, 0))  # Redesenhar a imagem de fundo
-        self.painel5_esquerda = tela.blit(self.painel_n5_image, (60, 287))  # Redesenhar a imagem de fundo
-        self.painel5_direita = tela.blit(self.painel_n5_image, (250, 287))  # Redesenhar a imagem de fundo
-        self.painel10 = tela.blit(self.painel_n10_image, (35, 560))  # Redesenhar a imagem de fundo
-        self.painel20 = tela.blit(self.painel_n20_image, (147, 560))  # Redesenhar a imagem de fundo
-        self.painel30 = tela.blit(self.painel_n30_image, (260, 560))  # Redesenhar a imagem de fundo
+        self.painel5_esquerda = tela.blit(self.painel_n5_image, (60, 287))
+        self.painel5_direita = tela.blit(self.painel_n5_image, (250, 287)) 
+        self.painel10 = tela.blit(self.painel_n10_image, (35, 560))
+        self.painel20 = tela.blit(self.painel_n20_image, (147, 560))
+        if self.mostrar_painel30:
+            self.painel30 = tela.blit(self.painel_n30_image, (260, 560))
+        
+        self.icon_dica = tela.blit(self.icon_dica_image, (325, 497))
 
         # Atualizar a tela
         pygame.display.flip()
@@ -73,12 +84,12 @@ class FaseNumeros:
     # Função para inserir pontuação
     def inserir_pontuacao(self, pontos_fase):
         client, db = self.create_connection()  # Obter conexão existente
-
+        
         try:
             if db is not None:
                 # Buscando a coleção de usuários (no caso, a coleção "criancas")
                 criancas = db["criancas"]
-
+                
                 self.caminho_imagem = 'assets/imagens/btn-atividade-amarelo.png'
 
                 self.notificacao = {
@@ -88,21 +99,43 @@ class FaseNumeros:
 
                 # Buscar o usuário na coleção pelo nome de usuário
                 crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
+
                 if crianca_ativa:
-                    # Atualizar os pontos e fases concluídas
-                    criancas.update_one(
-                    {"_id": crianca_ativa["_id"]},
-                    {
+                    missoes = crianca_ativa["missoesDiarias"]
+                    missao_encontrada = any(
+                        missao["nome"] == "Conclua a fase de números" for missao in missoes
+                    )
+                    
+                    # Base da atualização
+                    atualizacao = {
                         "$set": {
                             "pontos": crianca_ativa["pontos"] + pontos_fase,
                             "fasesConcluidas": crianca_ativa["fasesConcluidas"] + 1,
                             "faseAtual": 2,
                         },
                         "$push": {
-                            "notificacoes": self.notificacao,
+                            "notificacoes": self.notificacao,  # Adiciona apenas um item
                         },
                     }
-                )
+
+                    # Adicionar exclusão da missão, se encontrada
+                    if missao_encontrada:
+                        atualizacao["$pull"] = {"missoesDiarias": {"nome": "Conclua a fase de números"}}
+                    
+                    # Verifica o progresso do primeiro mundo
+                    progresso_primeiro_mundo = crianca_ativa["progressoMundos"][0].get("mundo1", 0)  # Pega o progresso ou 0, se não existir
+
+                    if progresso_primeiro_mundo <= 100:
+                        progresso_atualizado = progresso_primeiro_mundo + 25
+                        # Garante que o progresso não ultrapasse 100
+                        progresso_atualizado = min(progresso_atualizado, 100)
+                        
+                        # Atualiza o progresso no banco
+                        atualizacao["$set"]["progressoMundos.0.mundo1"] = progresso_atualizado
+
+                    # Aplicar a atualização no banco
+                    criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
+                    
                 else:
                     print(f"Usuário '{self.usuario_ativo}' não encontrado na coleção 'criancas'.")
             else:
@@ -178,6 +211,11 @@ class FaseNumeros:
         self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase, porcentagem_acertos])
 
         self.tempo_inicio_tela = None
+        
+    def ativar_dica(self):
+        if self.medalha_ativa == "Mundo Concluído!":
+            self.mostrar_painel30 = False  # Desative a exibição do painel 30
+            
 
     def atualizar(self, eventos):
         for evento in eventos:
@@ -197,6 +235,7 @@ class FaseNumeros:
                             {"area": self.painel10, "acao": lambda: self.trocar_tela(10)},
                             {"area": self.painel20, "acao": lambda: self.trocar_tela(20)},
                             {"area": self.painel30, "acao": lambda: self.trocar_tela(30)},
+                            {"area": self.icon_dica, "acao": lambda: self.ativar_dica()},
                         ]
 
                         # Verifica em qual área o clique ocorreu
