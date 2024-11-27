@@ -486,7 +486,7 @@ class TelaCadastro(GradienteScreen):
                             'rankAtual': "",
                             'faseAtual': 0,
                             'medalhaAtiva': "",
-                            'audio': "desativado",
+                            'audio': "ativado",
                             'progressoMundos': [
                                 {'mundo1': 0},
                                 {'mundo2': 0},
@@ -1619,18 +1619,59 @@ class TelaAtalhos(GradienteScreen2):
             bg_color=(0.2, 0.2, 0.2, 1),  # Cor de fundo (RGBA)
         )
         popup.open_popup()
-    
+
+class ClickableImage(ButtonBehavior, Image):
+    pass
+
 class TelaNotificacoes(GradienteScreen2):
+    usuario_ativo = None
+
     def atualizar_notificacoes(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
-        for i in dados_usuario["notificacoes"]:
-            self.adicionar_notificacao(i["imgNotificacao"])
+        self.usuario_ativo = dados_usuario["usuario"]
+        for notificacao in dados_usuario["notificacoes"]:
+            self.adicionar_notificacao(notificacao["imgNotificacao"], notificacao["nome"], notificacao["mensagem"], notificacao["icone"])
 
+    def adicionar_notificacao(self, image_path, nome_notificacao, mensagem, icone):
+        # Cria uma imagem clicável para a notificação
+        img = ClickableImage(source=image_path, size_hint=(None, None), size=(358, 104))
 
-    # Função para adicionar os paineis de notificação
-    def adicionar_notificacao(self, image_path):
-        # Adiciona o layout do item ao BoxLayout principal
-        self.ids.notificacoes.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+        # Define o evento de clique para abrir o popup
+        img.bind(on_release=lambda instance: self.show_popup(mensagem, nome_notificacao, icone, instance))
+        
+        # Adiciona a imagem ao layout de notificações
+        self.ids.notificacoes.add_widget(img)
+
+    def show_popup(self, message, nome_notificacao, icone, instance_image):
+        def excluir_notificacao(*args):
+            try:
+                client, db = create_local_connection()  # Conectar ao MongoDB
+                if db is not None:
+                    criancas = db["criancas"]
+                    criancas.update_one({"usuario": self.usuario_ativo}, {"$pull": {"notificacoes": {"nome": nome_notificacao}}})
+
+                else:
+                    print("Erro na conexão com o banco de dados.")
+
+            except PyMongoError as e:
+                print("Erro ao atualizar a criança:", e)
+
+            finally:
+                close_connection(client)
+
+            # Remove a imagem da notificação do layout
+            self.ids.notificacoes.remove_widget(instance_image)
+
+        # Cria e configura o popup
+        popup = CustomPopup(
+            title=nome_notificacao,
+            message=message,
+            icon_path=icone,
+            bg_color=(0.2, 0.2, 0.2, 1),
+            on_dismiss_callback=excluir_notificacao,
+            manager=self.manager
+        )
+        popup.open_popup()
 
 class TelaRanking(TelaAzul):
     tela_anterior = None
@@ -1805,6 +1846,7 @@ class Learny(MDApp):
                     tela_home = self.root.get_screen("TelaHome")
                     tela_perfil = self.root.get_screen("TelaPerfil")
                     tela_ranking = self.root.get_screen("TelaRanking")
+                    tela_notificacoes = self.root.get_screen("TelaNotificacoes")
 
                     # Chama os métodos para atualizar os dados das telas
                     if hasattr(tela_home, 'atualizar_dados'):
@@ -1815,6 +1857,8 @@ class Learny(MDApp):
                         tela_ranking.atualizar_dados()
                     if hasattr(tela_ranking, 'atualizar_ranking'):
                         tela_ranking.atualizar_ranking()
+                    if hasattr(tela_notificacoes, 'atualizar_notificacoes'):
+                        tela_notificacoes.atualizar_notificacoes()
 
                 else:
                     print("Nenhuma atualização necessária.")

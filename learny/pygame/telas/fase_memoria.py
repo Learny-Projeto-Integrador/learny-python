@@ -164,8 +164,13 @@ class FaseMemoria:
                 medalha_vapor = medalhas.find_one({"nome": "A todo o vapor!"})
                 medalha_mundo = medalhas.find_one({"nome": "Mundo Concluído!"})
 
-                self.caminho_imagem = 'assets/imagens/btn-atividade-verde.png'
-                self.caminho_imagem2 = 'assets/imagens/btn-conquista.png'
+                self.caminho_imagem = 'assets/imagens/btn-atividade-azul.png'
+                self.caminho_imagem2 = 'assets/imagens/btn-conquista-vermelha.png'
+                self.caminho_imagem3 = 'assets/imagens/btn-conquista-azul.png'
+
+                self.caminho_icone = 'assets/imagens/notificacao-atividade-azul.png'
+                self.caminho_icone2 = 'assets/imagens/notificacao-medalha-vermelha.png'
+                self.caminho_icone3 = 'assets/imagens/notificacao-medalha-azul.png'
 
                 self.notificacao = {
                     'nome': 'Atividade Concluída',
@@ -184,14 +189,20 @@ class FaseMemoria:
                         {
                             'nome': 'Atividade Concluída',
                             'imgNotificacao': self.caminho_imagem,
+                            'mensagem': "Concluiu a fase de memória",
+                            'icone': self.caminho_icone,
                         },
                         {
                             'nome': 'Conquista Desbloqueada',
                             'imgNotificacao': self.caminho_imagem2,
+                            'mensagem': "Conseguiu a conquista a todo o vapor!",
+                            'icone': self.caminho_icone2,
                         },
                         {
                             'nome': 'Conquista Desbloqueada',
-                            'imgNotificacao': self.caminho_imagem2,
+                            'imgNotificacao': self.caminho_imagem3,
+                            'mensagem': "Conseguiu a conquista mundo concluído!",
+                            'icone': self.caminho_icone3,
                         }
                     ]
 
@@ -202,6 +213,11 @@ class FaseMemoria:
                     medalha_existe = any(
                         medalha.get("nome") in medalhas_a_verificar for medalha in crianca_ativa["medalhas"]
                     )
+
+                    if crianca_ativa["medalhaAtiva"] == "Iniciando!":
+                        pontos_fase = pontos_fase + 50
+                    elif crianca_ativa["medalhaAtiva"] == "A todo o vapor!":
+                        pontos_fase = pontos_fase * 2
 
                     # Base da atualização
                     atualizacao = {
@@ -242,6 +258,8 @@ class FaseMemoria:
 
                     # Aplicar a atualização no banco
                     criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
+
+                    return pontos_fase
                     
                 else:
                     print(f"Usuário '{self.usuario_ativo}' não encontrado na coleção 'criancas'.")
@@ -300,10 +318,10 @@ class FaseMemoria:
         tempo_formatado = f"{minutos:02}:{segundos:02}"
         
         pontos_fase = 100
-        self.inserir_pontuacao(pontos_fase)
+        pontos_atualizados = self.inserir_pontuacao(pontos_fase)
         self.atualizar_ranking()
         
-        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase])
+        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_atualizados])
 
         self.tempo_inicio_tela = None
         

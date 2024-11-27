@@ -111,10 +111,13 @@ class FaseFala:
                 criancas = db["criancas"]
                 
                 self.caminho_imagem = 'assets/imagens/btn-atividade-vermelho.png'
+                self.caminho_icone = 'assets/imagens/notificacao-atividade-vermelha.png'
 
                 self.notificacao = {
                     'nome': 'Atividade Concluída',
                     'imgNotificacao': self.caminho_imagem,
+                    'mensagem': "Concluiu a fase de escuta",
+                    'icone': self.caminho_icone,
                 }
 
                 # Buscar o usuário na coleção pelo nome de usuário
@@ -126,8 +129,11 @@ class FaseFala:
                         missao["nome"] == "Conclua a fase de escuta" for missao in missoes
                     )
                     
-                    print(pontos_fase)
-                    print(crianca_ativa["pontos"] + pontos_fase)
+                    if crianca_ativa["medalhaAtiva"] == "Iniciando!":
+                        pontos_fase = pontos_fase + 50
+                    elif crianca_ativa["medalhaAtiva"] == "A todo o vapor!":
+                        pontos_fase = pontos_fase * 2
+
                     # Base da atualização
                     atualizacao = {
                         "$set": {
@@ -157,6 +163,8 @@ class FaseFala:
 
                     # Aplicar a atualização no banco
                     criancas.update_one({"_id": crianca_ativa["_id"]}, atualizacao)
+
+                    return pontos_fase
                     
                 else:
                     print(f"Usuário '{self.usuario_ativo}' não encontrado na coleção 'criancas'.")
@@ -221,10 +229,10 @@ class FaseFala:
             pontos_fase = 100
             porcentagem_acertos = "100%" 
             
-        self.inserir_pontuacao(pontos_fase)
+        pontos_atualizados = self.inserir_pontuacao(pontos_fase)
         self.atualizar_ranking()
         
-        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_fase, porcentagem_acertos])
+        self.gerenciador.trocar_tela("conclusao_fase", [tempo_formatado, pontos_atualizados, porcentagem_acertos])
 
         self.tempo_inicio_tela = None
         
