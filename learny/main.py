@@ -225,12 +225,14 @@ class TelaLogin(GradienteScreen):
                         tela_perfil = app.root.get_screen("TelaPerfil")
                         tela_ranking = app.root.get_screen("TelaRanking")
                         tela_notificacaoes = app.root.get_screen("TelaNotificacoes")
+                        tela_atalhos = app.root.get_screen("TelaAtalhos")
                         
                         tela_home.atualizar_dados()
                         tela_perfil.atualizar_dados()
                         tela_ranking.atualizar_dados()
                         tela_ranking.atualizar_ranking()
                         tela_notificacaoes.atualizar_notificacoes()
+                        tela_atalhos.atualizar_dados()
                         
                         self.go_bem_vindo(usuario_banco_crianca["nome"])
                         Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
@@ -1589,14 +1591,54 @@ class TelaEditarFotoPerfil(GradienteScreen):
             self.manager.current = 'TelaPerfilPais'
 
 
-class TelaAtalhos(GradienteScreen2):
-    missoes = []
-    def atualizar_dados(self):
-        dados_usuario = MDApp.get_running_app().dados_usuario
-        self.misoses = dados_usuario["missoesDiarias"]
-        for i in self.missoes:
-            pass
+from kivy.properties import ListProperty
 
+class TelaAtalhos(GradienteScreen2):
+    cor_painel1 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+    cor_painel2 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+    cor_painel3 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+
+    def atualizar_dados(self):
+        # Obter dados do usuário
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.missoes = dados_usuario.get("missoesDiarias", [])
+
+        # Mapeamento de cores baseado no nome das missões
+        cor_missoes = {
+            "Conclua um mundo hoje": [0.5, 0.82, 0.35, 1],  # Verde claro
+            "Conclua 3 fases": [0.93, 0.35, 0.41, 1],  # Vermelho claro
+            "Conclua a fase de observação": [0.42, 0.82, 1, 1],  # Azul claro
+            "Conclua a fase de números": [1, 0.7, 0, 1],  # Amarelo
+            "Conclua a fase de memória": [1, 0.7, 0, 1],  # Amarelo
+            "Conclua a fase de escuta": [0.93, 0.35, 0.41, 1],  # Vermelho claro
+        }
+
+        # IDs dos painéis
+        paineis = [
+            {"id_painel": "painel_missao1", "id_lbl": "lbl_missao1", "id_icon": "icon_missao1", "cor_var": "cor_painel1"},
+            {"id_painel": "painel_missao2", "id_lbl": "lbl_missao2", "id_icon": "icon_missao2", "cor_var": "cor_painel2"},
+            {"id_painel": "painel_missao3", "id_lbl": "lbl_missao3", "id_icon": "icon_missao3", "cor_var": "cor_painel3"},
+        ]
+
+        # Iterar pelas missões e preencher os painéis
+        for i, painel_info in enumerate(paineis):
+            if i < len(self.missoes):  # Se existe uma missão para este painel
+                missao = self.missoes[i]
+                label = self.ids[painel_info["id_lbl"]]
+                icon = self.ids[painel_info["id_icon"]]
+
+                # Atualiza os elementos com os dados da missão
+                label.text = missao.get("nome", "Missão sem nome")
+                icon.source = missao.get("icon", "assets/imagens/default.png")
+
+                # Define a cor do painel com base no nome da missão
+                cor = cor_missoes.get(missao["nome"], [1, 1, 1, 1])  # Branco como padrão
+                setattr(self, painel_info["cor_var"], cor)  # Atualiza a propriedade de cor
+            else:
+                # Esconde os painéis restantes que não possuem missão
+                painel = self.ids[painel_info["id_painel"]]
+                painel.opacity = 0
+                
     # Função para verificar o clique no botão de ir para o ranking
     def go_ranking(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
@@ -1787,11 +1829,12 @@ class Learny(MDApp):
     ]
 
     missoes_data = [
-        {"_id": {"$oid": "67423c59298d882dd65dca45"}, "nome": "Conclua 3 fases"},
-        {"_id": {"$oid": "67423c93298d882dd65dca46"}, "nome": "Conclua a fase de observação"},
-        {"_id": {"$oid": "67423cac298d882dd65dca47"}, "nome": "Conclua a fase de escuta"},
-        {"_id": {"$oid": "67423cc3298d882dd65dca48"}, "nome": "Conclua a fase de números"},
-        {"_id": {"$oid": "67423cea298d882dd65dca49"}, "nome": "Conclua um mundo hoje"}
+        {"_id": {"$oid": "67423c59298d882dd65dca45"}, "nome": "Conclua 3 fases", "icon": "assets/imagens/icon-diaria-fases.png"},
+        {"_id": {"$oid": "67423c93298d882dd65dca46"}, "nome": "Conclua a fase de observação", "icon": "assets/imagens/icon-diaria-observacao.png"},
+        {"_id": {"$oid": "67423cac298d882dd65dca47"}, "nome": "Conclua a fase de escuta", "icon": "assets/imagens/icon-diaria-escuta.png"},
+        {"_id": {"$oid": "67423cc3298d882dd65dca48"}, "nome": "Conclua a fase de números", "icon": "assets/imagens/icon-diaria-numeros.png"},
+        {"_id": {"$oid": "67423cc3298d882dd65dca49"}, "nome": "Conclua a fase de memória", "icon": "assets/imagens/icon-diaria-memoria.png"},
+        {"_id": {"$oid": "67423cea298d882dd65dca50"}, "nome": "Conclua um mundo hoje", "icon": "assets/imagens/icon-diaria-mundo.png"}
     ]
 
     # Função para inicializar as coleções

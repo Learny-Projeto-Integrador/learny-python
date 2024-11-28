@@ -1,5 +1,6 @@
 import pygame
 import sys
+import os
 from gerenciador_telas import GerenciadorTelas
 from telas.tela_inicial import TelaInicial
 from telas.fase_numeros import FaseNumeros
@@ -38,6 +39,13 @@ def main():
     tela_principal = pygame.display.set_mode((400, 700))
     pygame.display.set_caption("Learny")
     clock = pygame.time.Clock()
+    
+    # Definir o ícone da janela
+    projeto_dir = os.path.dirname(os.path.abspath(__file__))
+    icone = pygame.image.load(
+        os.path.join(projeto_dir, 'telas', 'assets', 'icons', 'icon-learny.png')
+    )
+    pygame.display.set_icon(icone)
 
     # Verifica se um argumento foi passado
     if len(sys.argv) > 1:
