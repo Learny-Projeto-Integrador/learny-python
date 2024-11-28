@@ -244,7 +244,7 @@ class FaseFala:
                 self.estados_paineis[i] = False  # Atribuição correta
 
     def tocar_audio(self):
-        if self.audio:
+        if self.audio == "ativado":
             self.audio_red.play()
             
     def ativar_dica(self):

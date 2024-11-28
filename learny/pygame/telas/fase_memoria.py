@@ -332,7 +332,8 @@ class FaseMemoria:
 
         self.estados_paineis[painel] = True
         self.cartas_ativas.append(painel)
-        audio.play()  # Toca o áudio
+        if self.audio == "aitvado":
+            audio.play()  # Toca o áudio
 
         # Verifica se há um par formado
         self.verificar_par()
@@ -370,7 +371,7 @@ class FaseMemoria:
 
                 # Toca o áudio correspondente
                 audio = pares_correspondentes.get((carta1, carta2))
-                if audio:
+                if audio and self.audio == "aitvado":
                     audio.play()
 
                 # Marca a dica como usada

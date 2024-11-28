@@ -208,11 +208,11 @@ class FaseNumeros:
         if num_painel == 10:
             pontos_fase = 100
             porcentagem_acertos = "100%"
-            if self.audio:
+            if self.audio == "ativado":
                 self.audio_n10.play()   
-        elif num_painel == 20 and self.audio:
+        elif num_painel == 20 and self.audio == "ativado":
             self.audio_n20.play() 
-        elif num_painel == 30 and self.audio:
+        elif num_painel == 30 and self.audio == "ativado":
             self.audio_n30.play() 
 
         pontos_atualizados = self.inserir_pontuacao(pontos_fase)
@@ -225,6 +225,10 @@ class FaseNumeros:
     def ativar_dica(self):
         if self.medalha_ativa == "Mundo Concluído!":
             self.mostrar_painel30 = False  # Desative a exibição do painel 30
+
+    def tocar_audio(self):
+        if self.audio == "ativado":
+            self.audio_n5.play()
             
 
     def atualizar(self, eventos):
@@ -240,8 +244,8 @@ class FaseNumeros:
 
                         # Lista de áreas clicáveis e ações associadas
                         areas_clicaveis = [
-                            {"area": self.painel5_esquerda, "acao": lambda: self.audio_n5.play()},
-                            {"area": self.painel5_direita, "acao": lambda: self.audio_n5.play()},
+                            {"area": self.painel5_esquerda, "acao": lambda: self.tocar_audio()},
+                            {"area": self.painel5_direita, "acao": lambda: self.tocar_audio()},
                             {"area": self.painel10, "acao": lambda: self.trocar_tela(10)},
                             {"area": self.painel20, "acao": lambda: self.trocar_tela(20)},
                             {"area": self.painel30, "acao": lambda: self.trocar_tela(30)},

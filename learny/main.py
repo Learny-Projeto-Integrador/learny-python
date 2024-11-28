@@ -1031,7 +1031,7 @@ Builder.load_string("""
         pos_hint: {'center_y': 0.5}
 
         MDLabel:
-            text: "Filha:"
+            text: "Filho:"
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
             font_size: "14sp"
             halign: "left"
@@ -1890,6 +1890,7 @@ class Learny(MDApp):
                     tela_perfil = self.root.get_screen("TelaPerfil")
                     tela_ranking = self.root.get_screen("TelaRanking")
                     tela_notificacoes = self.root.get_screen("TelaNotificacoes")
+                    tela_atalhos = self.root.get_screen("TelaAtalhos")
 
                     # Chama os métodos para atualizar os dados das telas
                     if hasattr(tela_home, 'atualizar_dados'):
@@ -1902,6 +1903,8 @@ class Learny(MDApp):
                         tela_ranking.atualizar_ranking()
                     if hasattr(tela_notificacoes, 'atualizar_notificacoes'):
                         tela_notificacoes.atualizar_notificacoes()
+                    if hasattr(tela_atalhos, 'atualizar_dados'):
+                        tela_atalhos.atualizar_dados()
 
                 else:
                     print("Nenhuma atualização necessária.")
