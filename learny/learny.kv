@@ -1248,6 +1248,82 @@ WindowManager:
                 size_hint_y: None
                 height: 20
 
+
+            # Layout alternar medalhas
+            MDBoxLayout:
+                id: medalhas
+                orientation: 'vertical'
+                size_hint_y: None
+                padding: [30, 0, 30, 0]  # Esquerda, cima, direita, baixo
+                spacing: 0
+                height: self.minimum_height
+
+                MDBoxLayout:
+                    id: painel_principal_medalhas
+                    orientation: 'horizontal'
+                    size_hint_y: None
+                    height: 100
+                    padding: [30,0,0,0]
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: root.radius_painel_principal
+                            source: 'assets/imagens/fundo-gradiente-botoes.png'  # Imagem com gradiente
+                    
+                    Image:
+                        id: img_medalha_principal
+                        size_hint: None, None
+                        width: 46
+                        height: 59
+                        source: ""
+                        pos_hint: {"center_y": 0.5}
+                        allow_stretch: True
+
+                    Widget:
+                        size_hint_x: None
+                        width: 20
+
+                    MDBoxLayout:
+                        orientation: 'vertical'
+                        size_hint_y: None
+                        height: self.minimum_height
+                        spacing: 5  # Espaço entre as labels
+                        pos_hint: {'center_y': 0.5}
+
+                        MDLabel:
+                            text: "Medalha:"
+                            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+                            font_size: "14sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                        MDLabel:
+                            id: lbl_nome_medalha_principal
+                            text: "Luiza Carla"
+                            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+                            font_size: "18sp"
+                            halign: "left"
+                            size_hint_y: None
+                            height: self.texture_size[1]  # Ajusta a altura automaticamente ao conteúdo
+                            theme_text_color: "Custom"
+                            text_color: (1, 1, 1, 1)
+
+                    MDIconButton:
+                        icon: "assets/imagens/btn-dropdown.png"
+                        icon_size: "40sp"
+                        pos_hint: {'center_y': 0.5}
+                        on_press: root.on_dropdown_click()
+            
+            Widget:
+                size_hint_y: None
+                height: 15
+
             MDBoxLayout:
                 orientation: 'vertical'
                 size_hint_y: None
@@ -1290,7 +1366,9 @@ WindowManager:
                             pos_hint: {'center_x': 0.38, 'center_y': 0.5}
 
                         MDSwitch:
-                            size_hint_x: 0.15  # Define a largura do switch para ocupar o espaço restante
+                            id: switch_audio
+                            size_hint_x: None  # Define a largura do switch para ocupar o espaço restante
+                            width: 65
                             pos_hint: {'center_x': 0.65, "center_y": 0.47}  # Centraliza verticalmente o switch
                             on_active: root.on_switch_active(*args)
 
@@ -1514,7 +1592,7 @@ WindowManager:
                             width: 150
                             text_color: (0.3, 0.3, 0.3, 1)
                             halign: "left"  # Alinha o texto no centro
-                            pos_hint: {'center_y': 0.8}
+                            pos_hint: {'center_y': 0.9}
                             text_size: self.size  # Permite que o texto use a largura total
 
                         MDLabel:
@@ -1525,7 +1603,7 @@ WindowManager:
                             text_color: (0.3, 0.3, 0.3, 1)
                             size_hint_y: None
                             halign: "left"  # Alinha o texto no centro
-                            pos_hint: {'center_y': 0.37}
+                            pos_hint: {'center_y': 0.47}
                             text_size: self.size  # Permite que o texto use a largura total
                         
                         MDLabel:
@@ -1536,20 +1614,13 @@ WindowManager:
                             theme_text_color: "Custom"
                             text_color: (0.93, 0.35, 0.41, 1)
                             halign: "left"  # Alinha o texto no centro
-                            pos_hint: {'center_y': 0.62}
+                            pos_hint: {'center_y': 0.72}
                             text_size: self.size  # Permite que o texto use a largura total
-
-                        MDIconButton:
-                            id: btn_voltar
-                            icon: "assets/imagens/icon-voltar.png"
-                            icon_size: "35sp"
-                            pos_hint: {'center_x': 0.85, 'center_y': 0.87}
-                            on_press: root.voltar()
 
                         MDIconButton:
                             icon: "assets/imagens/icon-fogo-vermelho.png"
                             icon_size: "40sp"
-                            pos_hint: {'center_x': 0.85, 'center_y': 0.23}
+                            pos_hint: {'center_x': 0.85, 'center_y': 0.33}
 
                         MDLabel:
                             id: lbl_sequencia
@@ -1560,7 +1631,7 @@ WindowManager:
                             halign: "center"
                             valign: "middle"
                             text_color: (1, 1, 1, 1)
-                            pos_hint: {'center_x': 0.848, 'center_y': 0.2}
+                            pos_hint: {'center_x': 0.848, 'center_y': 0.3}
                             text_size: self.size  # Permite que o texto use a largura total
 
             MDBoxLayout:
@@ -1932,7 +2003,7 @@ WindowManager:
 
                         RelativeLayout:
                             MDLabel:
-                                text: "Atividades\nSemanais"
+                                text: "Fases\nConcluidas"
                                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                 font_size: "16sp"
                                 theme_text_color: "Custom"
@@ -1943,6 +2014,7 @@ WindowManager:
                                 pos_hint: {'center_x': 0.5, 'center_y': 0.37}
 
                             MDLabel:
+                                id: lbl_fases_concluidas
                                 text: "10"
                                 font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                 font_size: "26sp"
@@ -2006,7 +2078,24 @@ WindowManager:
 
             Widget:
                 size_hint_y: None
-                height: 50
+                height: 20
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                size_hint_y: None
+                height: self.minimum_height  # Ajusta a altura automaticamente ao conteúdo
+
+                # Botão Entrar fora do BoxLayout, mas no FloatLayout
+                MDIconButton:
+                    id: btn_perfil
+                    icon: "assets/imagens/btn-sair.png"
+                    icon_size: "80sp"
+                    pos_hint: {'center_x': 0.5}
+                    on_press: root.voltar()
+        
+            Widget:
+                size_hint_y: None
+                height: 40
                             
 
 
@@ -2333,6 +2422,7 @@ WindowManager:
                                 
                                 # Layout para a missão 01
                                 MDBoxLayout:
+                                    id: painel_missao1
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2349,27 +2439,31 @@ WindowManager:
 
                                         # Contorno
                                         Color:
-                                            rgba: 0.93, 0.35, 0.41, 1  # Cor do contorno (vermelho, por exemplo)
+                                            rgba: root.cor_painel1  # Cor do contorno (vermelho, por exemplo)
                                         Line:
                                             rounded_rectangle: (self.x, self.y, self.width, self.height, 35)  # Mesma posição e raio do RoundedRectangle
                                             width: 3  # Largura do contorno
                                     
                                     RelativeLayout:
                                         MDLabel:
-                                            text: "Faça 10 fases"
+                                            id: lbl_missao1
+                                            text: ""
+                                            size_hint_x: 0.7
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
                                             theme_text_color: "Custom"
                                             text_color: (0.29, 0.29, 0.29, 1)
-                                            halign: "center"
-                                            pos_hint: {"center_x": 0.3, "center_y": 0.5}  # Centraliza horizontalmente
+                                            halign: "left"
+                                            pos_hint: {"center_x": 0.43, "center_y": 0.5}  # Centraliza horizontalmente
                                         
                                         Image:
-                                            source: 'assets/imagens/icon-diaria.png'
+                                            id: icon_missao1
+                                            source: ''
                                             pos_hint: {'center_x': 0.89, 'center_y': 0.64}
 
                                 # Layout para a missão 02
                                 MDBoxLayout:
+                                    id: painel_missao2
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2386,27 +2480,31 @@ WindowManager:
 
                                         # Contorno
                                         Color:
-                                            rgba: 0.42, 0.82, 1, 1  # Cor do contorno (vermelho, por exemplo)
+                                            rgba: root.cor_painel2 # Cor do contorno (vermelho, por exemplo)
                                         Line:
                                             rounded_rectangle: (self.x, self.y, self.width, self.height, 35)  # Mesma posição e raio do RoundedRectangle
                                             width: 3  # Largura do contorno
                                     
                                     RelativeLayout:
                                         MDLabel:
-                                            text: "Conclua a atividade\nde observação"
+                                            id: lbl_missao2
+                                            size_hint_x: 0.7
+                                            text: ""
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
                                             theme_text_color: "Custom"
                                             text_color: (0.29, 0.29, 0.29, 1)
                                             halign: "left"
-                                            pos_hint: {"center_x": 0.58, "center_y": 0.5} 
+                                            pos_hint: {"center_x": 0.43, "center_y": 0.5} 
                                         
                                         Image:
-                                            source: 'assets/imagens/icon-diaria2.png'
+                                            id: icon_missao2
+                                            source: ''
                                             pos_hint: {'center_x': 0.88, 'center_y': 0.60}
                                                                 
                                 # Layout para a missão 03
                                 MDBoxLayout:
+                                    id: painel_missao3
                                     orientation: 'horizontal'
                                     size_hint: None, None
                                     width: 350  # Largura fixa para o retângulo
@@ -2423,23 +2521,26 @@ WindowManager:
 
                                         # Contorno
                                         Color:
-                                            rgba: 0.5, 0.82, 0.35, 1  # Cor do contorno (vermelho, por exemplo)
+                                            rgba: root.cor_painel3  # Cor do contorno (vermelho, por exemplo)
                                         Line:
                                             rounded_rectangle: (self.x, self.y, self.width, self.height, 35)  # Mesma posição e raio do RoundedRectangle
                                             width: 3  # Largura do contorno
                                     
                                     RelativeLayout:
                                         MDLabel:
-                                            text: "Conclua um mundo\nhoje"
+                                            id: lbl_missao3
+                                            size_hint_x: 0.7
+                                            text: ""
                                             font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
                                             font_size: "18sp"
                                             theme_text_color: "Custom"
                                             text_color: (0.29, 0.29, 0.29, 1)
                                             halign: "left"
-                                            pos_hint: {"center_x": 0.58, "center_y": 0.5} 
+                                            pos_hint: {"center_x": 0.43, "center_y": 0.5} 
                                         
                                         Image:
-                                            source: 'assets/imagens/icon-diaria3.png'
+                                            id: icon_missao3
+                                            source: ''
                                             pos_hint: {'center_x': 0.88, 'center_y': 0.60}
                 
                 Widget:
@@ -2733,7 +2834,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank1
-                                    source: "assets/imagens/fotos-criancas/joana.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem
@@ -2822,7 +2923,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank2
-                                    source: "assets/imagens/fotos-criancas/emanoela_foto_menor.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem
@@ -2911,7 +3012,7 @@ WindowManager:
                             FloatLayout:  # Empilha a imagem e o botão
                                 FitImage:  # A imagem será colocada primeiro, preenchendo o card
                                     id: img_rank3
-                                    source: "assets/imagens/fotos-criancas/enzo_foto_menor.jpg"
+                                    source: ""
                                     size_hint: (1, 1)  # Ocupará todo o espaço do card
                                     pos_hint: {"center_x": 0.5, "center_y": 0.5}
                                     radius: [100]  # Aplica o arredondamento também na imagem

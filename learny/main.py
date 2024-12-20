@@ -23,8 +23,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Color, Rectangle
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.screenmanager import SlideTransition
-from kivy.properties import StringProperty, ListProperty
+from kivy.properties import StringProperty, ListProperty, NumericProperty
 from os.path import expanduser, join
+from bson.objectid import ObjectId
 
 logging.getLogger('pymongo').setLevel(logging.WARNING)  # Reduz os logs de monitoramento de topologia
 
@@ -154,7 +155,7 @@ class TelaLogin(GradienteScreen):
                 'usuario': usuario_banco["usuario"],
                 'senha': usuario_banco["senha"],
                 'nome': usuario_banco["nome"],
-                'data_de_nascimento': usuario_banco["data_de_nascimento"],
+                'dataNasc': usuario_banco["dataNasc"],
                 'foto': usuario_banco["foto"],
                 'pai': usuario_banco["pai"],
                 'pontos': usuario_banco["pontos"],
@@ -162,8 +163,12 @@ class TelaLogin(GradienteScreen):
                 'fasesConcluidas': usuario_banco["fasesConcluidas"],
                 'conquistas': usuario_banco["conquistas"],
                 'missoesDiarias': usuario_banco["missoesDiarias"],
-                'notificaoes': usuario_banco["notificacoes"],
+                'notificacoes': usuario_banco["notificacoes"],
                 'ranking': usuario_banco["ranking"],
+                'rankAtual': usuario_banco["rankAtual"],
+                'faseAtual': usuario_banco["faseAtual"],
+                'medalhaAtiva': usuario_banco["medalhaAtiva"],
+                'audio': usuario_banco["audio"],
                 'desafios': usuario_banco["desafios"],
                 'progressoMundos': usuario_banco["progressoMundos"]
             }
@@ -213,16 +218,21 @@ class TelaLogin(GradienteScreen):
                     if dados_usuario:
                         # Passa os dados para a MainApp
                         MDApp.get_running_app().set_dados_usuario(dados_usuario)
+                        app.iniciar_verificacao()
                         
                         # Atualiza os dados das telas antes da transição
                         tela_home = app.root.get_screen("TelaHome")
                         tela_perfil = app.root.get_screen("TelaPerfil")
                         tela_ranking = app.root.get_screen("TelaRanking")
+                        tela_notificacaoes = app.root.get_screen("TelaNotificacoes")
+                        tela_atalhos = app.root.get_screen("TelaAtalhos")
                         
                         tela_home.atualizar_dados()
                         tela_perfil.atualizar_dados()
                         tela_ranking.atualizar_dados()
                         tela_ranking.atualizar_ranking()
+                        tela_notificacaoes.atualizar_notificacoes()
+                        tela_atalhos.atualizar_dados()
                         
                         self.go_bem_vindo(usuario_banco_crianca["nome"])
                         Clock.schedule_once(self.go_home, 2)  # Aguarda 2 segundos e vai para a tela Home
@@ -429,6 +439,11 @@ class TelaCadastro(GradienteScreen):
                 # Buscando a coleção para adicionar
                 criancas = db["criancas"]
                 pais = db["pais"]
+                ranking = db["ranking"]
+                missoes = db["missoes"]
+
+                # Selecionar 3 documentos aleatórios
+                missoes_diarias = list(missoes.aggregate([{ "$sample": { "size": 3 } }]))
                 
                 # Variáveis que armazenam os valores obtidos nos campos
                 usuario = self.ids.txt_usuario_cadastro.text
@@ -459,17 +474,21 @@ class TelaCadastro(GradienteScreen):
                             'usuario': usuario,
                             'senha': senha,
                             'nome': nome,
-                            'data_de_nascimento': data_nasc,
+                            'dataNasc': data_nasc,
                             'foto': caminho_imagem,
                             'pai': self.id_pai,
                             'pontos': 0,
-                            'medalhas': 0,
+                            'medalhas': [],
                             'fasesConcluidas': 0,
                             'conquistas': 0,
-                            'missoesDiarias': [],
+                            'missoesDiarias': missoes_diarias,
                             'notificacoes': [],
                             'ranking': 'habilitado',
                             'desafios': 'permitidos',
+                            'rankAtual': "",
+                            'faseAtual': 0,
+                            'medalhaAtiva': "",
+                            'audio': "ativado",
                             'progressoMundos': [
                                 {'mundo1': 0},
                                 {'mundo2': 0},
@@ -478,6 +497,14 @@ class TelaCadastro(GradienteScreen):
                             ]
                         }
                         criancas.insert_one(crianca)
+
+                        if ranking.count_documents({}) <= 7:
+                            crianca_ranking = {
+                                'foto': caminho_imagem,
+                                'nome': nome,
+                                'pontos': 0,
+                            }
+                            ranking.insert_one(crianca_ranking)
                         
                         # Exibir popup de sucesso
                         self.show_popup("Dados Cadastrados", "Seus dados foram cadastrados com sucesso!")
@@ -619,16 +646,18 @@ class TelaBemVindo(GradienteScreen):
     pass
 
 class TelaHome(GradienteScreen):
-    fator_progresso1 = 0
-    fator_progresso2 = 0 
-    fator_progresso3 = 0 
-    fator_progresso4 = 0  
-    
+    fator_progresso1 = NumericProperty(0)
+    fator_progresso2 = NumericProperty(0)
+    fator_progresso3 = NumericProperty(0)
+    fator_progresso4 = NumericProperty(0)
+    usuario_ativo = None
+
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
-        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
-        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        self.ids.lbl_medalhas.text = str(len(dados_usuario["medalhas"]))
+        self.ids.lbl_ranking.text = str(dados_usuario["rankAtual"])
+        self.usuario_ativo = dados_usuario["usuario"]
         
         # Obtendo os valores dos mundos
         valores_mundos = [list(mundo.values())[0] for mundo in dados_usuario["progressoMundos"]]
@@ -650,17 +679,98 @@ class TelaHome(GradienteScreen):
         # Caminho do script do Pygame
         projeto_dir = os.path.dirname(os.path.abspath(__file__))
         pygame_script_path = os.path.join(projeto_dir, 'pygame/main.py')
+
+        print(self.usuario_ativo)
         
         # Executa o script Pygame em um subprocesso
-        subprocess.Popen(["python", pygame_script_path])
+        subprocess.Popen(["python", pygame_script_path, self.usuario_ativo])
         
-        
+
+# Definindo uma classe para adicionar os paineis dos filhos no dropdown
+class PainelMedalha(ButtonBehavior, BoxLayout):
+    image_path = StringProperty("assets/imagens/icon-medalha-verde.png")
+    nome_medalha = StringProperty("iniciando!")
+    border_radius = ListProperty([20])  # Define o radius padrão para 20
+
+    
+# Código kv do painel
+Builder.load_string("""
+<PainelMedalha>:
+    orientation: 'horizontal'
+    size_hint_y: None
+    height: 100
+    padding: [30, 0, 0, 0]
+    
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: root.border_radius
+            source: 'assets/imagens/fundo-gradiente.png'
+
+    Image:
+        size_hint: None, None
+        width: 46
+        height: 59
+        source: root.image_path
+        pos_hint: {"center_y": 0.5}
+        allow_stretch: True
+
+    Widget:
+        size_hint_x: None
+        width: 20
+
+    MDBoxLayout:
+        orientation: 'vertical'
+        size_hint_y: None
+        height: self.minimum_height
+        spacing: 5
+        pos_hint: {'center_y': 0.5}
+
+        MDLabel:
+            text: "Medalha:"
+            font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
+            font_size: "14sp"
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1]
+            theme_text_color: "Custom"
+            text_color: (1, 1, 1, 1)
+
+        MDLabel:
+            text: root.nome_medalha
+            font_name: "assets/fontes/montserrat/Montserrat-Bold.ttf"
+            font_size: "18sp"
+            halign: "left"
+            size_hint_y: None
+            height: self.texture_size[1]
+            theme_text_color: "Custom"
+            text_color: (1, 1, 1, 1)
+""")
+
+
 class TelaPerfil(Screen):
     fator_progresso = 0
+    usuario_ativo = None
+    lista_medalhas = []
+    medalha_selecionada = None
+    trocar = True
+
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.foto_perfil.source = dados_usuario["foto"]
         self.ids.lbl_nome_perfil.text = dados_usuario["nome"]
+        self.usuario_ativo = dados_usuario["usuario"]
+        self.medalha_selecionada = dados_usuario["medalhaAtiva"]
+
+        self.trocar = False
+        if dados_usuario["audio"] == "ativado":
+            self.ids.switch_audio.active = True
+        elif dados_usuario["audio"] == "desativado":
+            self.ids.switch_audio.active = False
+        self.trocar = True
 
         nivel = int(dados_usuario["pontos"] / 100)
         self.ids.lbl_nivel.text = str(nivel)
@@ -668,7 +778,193 @@ class TelaPerfil(Screen):
         pontos_mostrar = dados_usuario["pontos"] % 100
         self.ids.lbl_pontos.text = str(pontos_mostrar)
         self.fator_progresso = (pontos_mostrar/100)
+
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Buscando a coleção de crianças
+                criancas = db["criancas"]
+                
+                # Buscando todos os filhos do pai no banco de dados
+                criancas_cursor = criancas.find({"usuario": self.usuario_ativo})
+                
+                # Limpa a lista de medalhas antes de adicionar novas
+                self.lista_medalhas.clear()
+                
+                # Loop para processar cada documento de criança
+                for crianca in criancas_cursor:
+                    # Verifica se o campo "medalhas" existe e é uma lista
+                    if "medalhas" in crianca and isinstance(crianca["medalhas"], list):
+                        for medalha in crianca["medalhas"]:
+                            # Adiciona os dados da medalha à lista
+                            self.lista_medalhas.append({
+                                "_id": medalha["_id"],
+                                "nome": medalha["nome"],
+                                "iconMedalha": medalha["iconMedalha"]
+                            })
+                
+                if not self.lista_medalhas:         
+                    self.ids.img_medalha_principal.source = ""
+                    self.ids.lbl_nome_medalha_principal.text = "Conquiste sua primeira medalha"
+                    
+                # Atualiza o painel principal com o filho selecionado
+                medalha_encontrada = False
+                for i in self.lista_medalhas:
+                    if i["nome"] == self.medalha_selecionada:
+                        self.ids.img_medalha_principal.source = i["iconMedalha"]
+                        self.ids.lbl_nome_medalha_principal.text = i["nome"]
+                        
+                        medalha_encontrada = True
+                        break
+                
+                # Se não tiver filho selecionado, pega o primeiro filho
+                if not medalha_encontrada and self.lista_medalhas:
+                    self.ids.img_medalha_principal.source = i["iconMedalha"]
+                    self.ids.lbl_nome_medalha_principal.text = self.lista_medalhas[0]["nome"]
+                
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao buscar os dados da criança:", e)
+        finally:
+            close_connection(client)
+
+    def atualizar_medalhas_selecionado(self, nome_medalha):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Atualiza o filho selecionado no banco de dados
+                criancas = db["criancas"]
+                criancas.update_one({"usuario": self.usuario_ativo}, {"$set": {"medalhaAtiva": nome_medalha}})
+                
+                # Atualiza a tela com o novo filho selecionado
+                layout_medalhas = self.ids.medalhas
+                painel_principal = self.ids.painel_principal_medalhas  # Painel que sempre permanece ativo
+                
+                # Verifica se há outros widgets além do painel principal
+                if any(child != painel_principal for child in layout_medalhas.children):
+                    # Remove todos os painéis dinâmicos, mantendo o painel principal
+                    for child in layout_medalhas.children[:]:
+                        if child != painel_principal:
+                            layout_medalhas.remove_widget(child)
+                    
+                    # Reseta o radius inferior do painel principal        
+                    self.radius_painel_principal = [20]    
+
+                # Atualiza o painel principal com o novo filho selecionado pegando diretamente da lista de filhos
+                for i in self.lista_medalhas:
+                    if i["nome"] == nome_medalha:
+                        self.ids.img_medalha_principal.source = i["iconMedalha"]
+                        self.ids.lbl_nome_medalha_principal.text = i["nome"]
+
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar filho selecionado:", e)
+        finally:
+            close_connection(client)
     
+    radius_painel_principal = ListProperty([20])  # Valor padrão   
+    
+    def on_dropdown_click(self):
+        print(self.medalha_selecionada)
+        # Obter o layout onde os painéis filhos serão adicionados
+        layout_medalhas = self.ids.medalhas
+        painel_principal = self.ids.painel_principal_medalhas  # Painel que sempre permanece ativo
+
+        # Verifica se há outros widgets além do painel principal
+        if any(child != painel_principal for child in layout_medalhas.children):
+            # Remove todos os painéis dinâmicos, mantendo o painel principal
+            for child in layout_medalhas.children[:]:
+                if child != painel_principal:
+                    layout_medalhas.remove_widget(child)
+
+            # Reseta o radius inferior do painel principal        
+            self.radius_painel_principal = [20]
+
+        else:
+            # Filtrar filhos que não são o selecionado
+            medalhas_dropdown = [medalha for medalha in self.lista_medalhas if medalha["nome"] != self.medalha_selecionada]
+
+            # Adiciona os filhos ao painel dinâmico
+            for index, medalha in enumerate(medalhas_dropdown):
+                # Se o filho for o último na lista filtrada, aplica a borda inferior
+                if index == len(medalhas_dropdown) - 1:
+                    radius = [0, 0, 20, 20]  # Último painel com borda inferior
+                else:
+                    radius = [0, 0, 0, 0]  # Painéis anteriores sem borda inferior
+                    
+                self.adicionar_painel_medalha(medalha["_id"], medalha["iconMedalha"], medalha["nome"], radius)
+
+
+    def on_painel_medalha_clicado(self, instance):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                # Pega os dados da crianca que vai ser atualizada através do nome
+                crianca = db["criancas"].find_one({"usuario": self.usuario_ativo})
+                
+                if crianca is not None:
+                    self.atualizar_medalhas_selecionado(instance.nome_medalha)
+                    self.medalha_selecionada = instance.nome_medalha
+
+                else:
+                    print(f"Nenhuma medalha encontrada com o nome '{instance.nome_medalha}'.")
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar medalha ativa:", e)
+        finally:
+            close_connection(client)
+
+    def adicionar_painel_medalha(self, id_medalha_painel, image_path, nome, radius):
+        # Cria uma nova instância de PainelFilho com imagem e nome específicos
+        painel = PainelMedalha()
+        painel.id_medalha = id_medalha_painel
+        painel.image_path = image_path
+        painel.nome_medalha = nome
+        painel.border_radius = radius 
+        # Adiciona um evento de clique para o painel inteiro
+        painel.bind(on_press=self.on_painel_medalha_clicado)
+        
+        # Adiciona o painel ao layout principal
+        self.ids.medalhas.add_widget(painel)
+        self.radius_painel_principal = [20, 20, 0, 0]
+        
+    def on_switch_active(self, switch, active):
+        if self.trocar:
+            try:
+                client, db = create_local_connection()  # Conectar ao MongoDB
+                if db is not None:
+                    # Pega os dados da crianca que vai ser atualizada através do nome
+                    criancas = db["criancas"]
+                    crianca_ativa = criancas.find_one({"usuario": self.usuario_ativo})
+                    
+                    if crianca_ativa is not None:
+                        if crianca_ativa["audio"] == "desativado":
+                            criancas.update_one({"_id": crianca_ativa["_id"]}, {"$set": {"audio": "ativado"}})
+                        elif crianca_ativa["audio"] == "ativado":
+                            criancas.update_one({"_id": crianca_ativa["_id"]}, {"$set": {"audio": "desativado"}})
+
+                    else:
+                        print(f"Nenhuma crianca encontrada.")
+                else:
+                    print("Erro na conexão com o banco de dados.")
+            except PyMongoError as e:
+                print("Erro ao atualizar crianca:", e)
+            finally:
+                close_connection(client)
+
+    # Função para mostrar o popup
+    def show_popup(self, title, message):
+        popup = CustomPopup(
+            title=title,
+            message=message,
+            icon_path="assets/imagens/icon-erro.png",  # Caminho para o ícone
+            bg_color=(0.2, 0.2, 0.2, 1),  # Cor de fundo (RGBA)
+        )
+        popup.open_popup()
+
     # Função para verificar o clique no botão de ir para o ranking
     def go_ranking(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
@@ -681,19 +977,6 @@ class TelaPerfil(Screen):
             
         else:
             self.show_popup("Erro!", "Você está com o ranking desabilitado!")
-        
-    def on_switch_active(self, switch, active):
-        pass
-
-    # Função para mostrar o popup
-    def show_popup(self, title, message):
-        popup = CustomPopup(
-            title=title,
-            message=message,
-            icon_path="assets/imagens/icon-erro.png",  # Caminho para o ícone
-            bg_color=(0.2, 0.2, 0.2, 1),  # Cor de fundo (RGBA)
-        )
-        popup.open_popup()
 
             
 # Definindo uma classe para adicionar os paineis dos filhos no dropdown
@@ -748,7 +1031,7 @@ Builder.load_string("""
         pos_hint: {'center_y': 0.5}
 
         MDLabel:
-            text: "Filha:"
+            text: "Filho:"
             font_name: "assets/fontes/montserrat/Montserrat-Regular.ttf"
             font_size: "14sp"
             halign: "left"
@@ -775,6 +1058,11 @@ class TelaPerfilPais(Screen):
     fator_progresso = 0
     foto_pai = None
     trocar = True # Variável para controlar a chamada da função atualizar_rankig no MDSwitch
+
+    # Função para adicionar os paineis de notificação
+    def adicionar_medalhas(self, image_path):
+        # Adiciona o layout do item ao BoxLayout principal
+        self.ids.medalhas.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(370, 104)))
     
     def buscar_dados_crianca(self, usuario_banco):
         # Busca os dados do usuário ativo               
@@ -848,8 +1136,17 @@ class TelaPerfilPais(Screen):
                     if i["id"] == self.filho_selecionado:
                         self.ids.img_filho_principal.source = i["foto"]
                         self.ids.lbl_nome_filho_principal.text = i["nome"]
+                        self.ids.lbl_fases_concluidas.text = str(i["fasesConcluidas"])
                         if i["ranking"] == "habilitado":
                             self.ids.switch_ranking.active = True
+
+                        for medalha in i["medalhas"]:
+                            if medalha["nome"] == "Iniciando!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha1.png")
+                            elif medalha["nome"] == "A todo o vapor!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha2.png")
+                            elif medalha["nome"] == "Mundo Concluído!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha3.png")
                         
                         filho_encontrado = True
                         break
@@ -858,9 +1155,18 @@ class TelaPerfilPais(Screen):
                 if not filho_encontrado and self.lista_filhos:
                     self.ids.img_filho_principal.source = self.lista_filhos[0]["foto"]
                     self.ids.lbl_nome_filho_principal.text = self.lista_filhos[0]["nome"]
+                    self.ids.lbl_fases_concluidas.text = str(i["fasesConcluidas"])
                     self.filho_selecionado = self.lista_filhos[0]["id"]  # Atualiza para o primeiro filho
                     if self.lista_filhos[0]["ranking"] == "habilitado":
                             self.ids.switch_ranking.active = True
+
+                    for medalha in i["medalhas"]:
+                        if medalha["nome"] == "Iniciando!":
+                            self.adicionar_medalhas("assets/imagens/painel-medalha1.png")
+                        elif medalha["nome"] == "A todo o vapor!":
+                            self.adicionar_medalhas("assets/imagens/painel-medalha2.png")
+                        elif medalha["nome"] == "Mundo Concluído!":
+                            self.adicionar_medalhas("assets/imagens/painel-medalha3.png")
                 
             else:
                 print("Erro na conexão com o banco de dados.")
@@ -896,6 +1202,7 @@ class TelaPerfilPais(Screen):
                     if i["id"] == id_filho:
                         self.ids.img_filho_principal.source = i["foto"]
                         self.ids.lbl_nome_filho_principal.text = i["nome"]
+                        self.ids.lbl_fases_concluidas.text = str(i["fasesConcluidas"])
                         # Deixa trocar como False para que o switch não chame a função de atualizar ranking
                         self.trocar = False
                         if i["ranking"] == "habilitado":
@@ -904,6 +1211,18 @@ class TelaPerfilPais(Screen):
                             self.ids.switch_ranking.active = False
                         # Volta trocar para true para que o switch volte chame a função de atualizar ranking
                         self.trocar = True
+
+                        layout_medalhas = self.ids.medalhas
+                        for child in layout_medalhas.children[:]:
+                            layout_medalhas.remove_widget(child)
+
+                        for medalha in i["medalhas"]:
+                            if medalha["nome"] == "Iniciando!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha1.png")
+                            elif medalha["nome"] == "A todo o vapor!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha2.png")
+                            elif medalha["nome"] == "Mundo Concluído!":
+                                self.adicionar_medalhas("assets/imagens/painel-medalha3.png")
                         break
 
             else:
@@ -1050,7 +1369,7 @@ class TelaEditarPerfil(GradienteScreen):
                     self.id_crianca = usuario_banco["_id"]
                     senha = usuario_banco["senha"]
                     nome = usuario_banco["nome"]
-                    data_nasc = usuario_banco["data_de_nascimento"]
+                    data_nasc = usuario_banco["dataNasc"]
                     self.foto = usuario_banco["foto"]
                     
                     if not self.dados_carregados:
@@ -1105,7 +1424,7 @@ class TelaEditarPerfil(GradienteScreen):
                         'usuario': usuario,
                         'senha': senha,
                         'nome': nome,
-                        'data_de_nascimento': data_nasc,
+                        'dataNasc': data_nasc,
                         'foto': caminho_imagem
                     }
                     # Atualizar os dados da criança pelo ID
@@ -1272,7 +1591,54 @@ class TelaEditarFotoPerfil(GradienteScreen):
             self.manager.current = 'TelaPerfilPais'
 
 
+from kivy.properties import ListProperty
+
 class TelaAtalhos(GradienteScreen2):
+    cor_painel1 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+    cor_painel2 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+    cor_painel3 = ListProperty([1, 1, 1, 1])  # Branco como padrão
+
+    def atualizar_dados(self):
+        # Obter dados do usuário
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.missoes = dados_usuario.get("missoesDiarias", [])
+
+        # Mapeamento de cores baseado no nome das missões
+        cor_missoes = {
+            "Conclua um mundo hoje": [0.5, 0.82, 0.35, 1],  # Verde claro
+            "Conclua 3 fases": [0.93, 0.35, 0.41, 1],  # Vermelho claro
+            "Conclua a fase de observação": [0.42, 0.82, 1, 1],  # Azul claro
+            "Conclua a fase de números": [1, 0.7, 0, 1],  # Amarelo
+            "Conclua a fase de memória": [1, 0.7, 0, 1],  # Amarelo
+            "Conclua a fase de escuta": [0.93, 0.35, 0.41, 1],  # Vermelho claro
+        }
+
+        # IDs dos painéis
+        paineis = [
+            {"id_painel": "painel_missao1", "id_lbl": "lbl_missao1", "id_icon": "icon_missao1", "cor_var": "cor_painel1"},
+            {"id_painel": "painel_missao2", "id_lbl": "lbl_missao2", "id_icon": "icon_missao2", "cor_var": "cor_painel2"},
+            {"id_painel": "painel_missao3", "id_lbl": "lbl_missao3", "id_icon": "icon_missao3", "cor_var": "cor_painel3"},
+        ]
+
+        # Iterar pelas missões e preencher os painéis
+        for i, painel_info in enumerate(paineis):
+            if i < len(self.missoes):  # Se existe uma missão para este painel
+                missao = self.missoes[i]
+                label = self.ids[painel_info["id_lbl"]]
+                icon = self.ids[painel_info["id_icon"]]
+
+                # Atualiza os elementos com os dados da missão
+                label.text = missao.get("nome", "Missão sem nome")
+                icon.source = missao.get("icon", "assets/imagens/default.png")
+
+                # Define a cor do painel com base no nome da missão
+                cor = cor_missoes.get(missao["nome"], [1, 1, 1, 1])  # Branco como padrão
+                setattr(self, painel_info["cor_var"], cor)  # Atualiza a propriedade de cor
+            else:
+                # Esconde os painéis restantes que não possuem missão
+                painel = self.ids[painel_info["id_painel"]]
+                painel.opacity = 0
+                
     # Função para verificar o clique no botão de ir para o ranking
     def go_ranking(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
@@ -1295,18 +1661,59 @@ class TelaAtalhos(GradienteScreen2):
             bg_color=(0.2, 0.2, 0.2, 1),  # Cor de fundo (RGBA)
         )
         popup.open_popup()
-    
-class TelaNotificacoes(GradienteScreen2):
-    def on_enter(self):
-        # Adicionando notificações
-        self.adicionar_notificacao("assets/imagens/btn-conquista.png")
-        self.adicionar_notificacao("assets/imagens/btn-atividade-amarelo.png")
-        self.adicionar_notificacao("assets/imagens/btn-atividade-azul.png")
 
-    # Função para adicionar os paineis de notificação
-    def adicionar_notificacao(self, image_path):
-        # Adiciona o layout do item ao BoxLayout principal
-        self.ids.notificacoes.add_widget(FitImage(source=image_path, size_hint=(None, None), size=(358, 104)))
+class ClickableImage(ButtonBehavior, Image):
+    pass
+
+class TelaNotificacoes(GradienteScreen2):
+    usuario_ativo = None
+
+    def atualizar_notificacoes(self):
+        dados_usuario = MDApp.get_running_app().dados_usuario
+        self.usuario_ativo = dados_usuario["usuario"]
+        for notificacao in dados_usuario["notificacoes"]:
+            self.adicionar_notificacao(notificacao["imgNotificacao"], notificacao["nome"], notificacao["mensagem"], notificacao["icone"])
+
+    def adicionar_notificacao(self, image_path, nome_notificacao, mensagem, icone):
+        # Cria uma imagem clicável para a notificação
+        img = ClickableImage(source=image_path, size_hint=(None, None), size=(358, 104))
+
+        # Define o evento de clique para abrir o popup
+        img.bind(on_release=lambda instance: self.show_popup(mensagem, nome_notificacao, icone, instance))
+        
+        # Adiciona a imagem ao layout de notificações
+        self.ids.notificacoes.add_widget(img)
+
+    def show_popup(self, message, nome_notificacao, icone, instance_image):
+        def excluir_notificacao(*args):
+            try:
+                client, db = create_local_connection()  # Conectar ao MongoDB
+                if db is not None:
+                    criancas = db["criancas"]
+                    criancas.update_one({"usuario": self.usuario_ativo}, {"$pull": {"notificacoes": {"nome": nome_notificacao}}})
+
+                else:
+                    print("Erro na conexão com o banco de dados.")
+
+            except PyMongoError as e:
+                print("Erro ao atualizar a criança:", e)
+
+            finally:
+                close_connection(client)
+
+            # Remove a imagem da notificação do layout
+            self.ids.notificacoes.remove_widget(instance_image)
+
+        # Cria e configura o popup
+        popup = CustomPopup(
+            title=nome_notificacao,
+            message=message,
+            icon_path=icone,
+            bg_color=(0.2, 0.2, 0.2, 1),
+            on_dismiss_callback=excluir_notificacao,
+            manager=self.manager
+        )
+        popup.open_popup()
 
 class TelaRanking(TelaAzul):
     tela_anterior = None
@@ -1314,30 +1721,30 @@ class TelaRanking(TelaAzul):
     def atualizar_dados(self):
         dados_usuario = MDApp.get_running_app().dados_usuario
         self.ids.lbl_pontos.text = str(dados_usuario["pontos"])
-        self.ids.lbl_medalhas.text = str(dados_usuario["medalhas"])
-        self.ids.lbl_ranking.text = str(dados_usuario["fasesConcluidas"])
+        self.ids.lbl_medalhas.text = str(len(dados_usuario["medalhas"]))
+        self.ids.lbl_ranking.text = str(dados_usuario["rankAtual"])
         
     def atualizar_ranking(self):
         try:
             client, db = create_local_connection()  # Conectar ao MongoDB
             if db is not None:
-                criancas = db["criancas"]
+                ranking = db["ranking"]
                 
-                # Ordenando as crianças por pontos em ordem decrescente e limitando a 7 resultados
-                top_criancas = list(criancas.find().sort("pontos", -1).limit(7))
-                
+                # Ordenando as crianças por pontos em ordem decrescente
+                criancas = list(ranking.find())
+
                 # Iterando sobre os resultados e atualizando a interface
-                for i, crianca in enumerate(top_criancas):
+                for i, ranking in enumerate(criancas):
                     # Exibindo a foto apenas para os três primeiros colocados
                     if i < 3:
-                        self.ids[f'img_rank{i+1}'].source = crianca["foto"]
+                        self.ids[f'img_rank{i+1}'].source = ranking["foto"]
                     
                     # Atualizando nome e pontos para o os rankings 4 a 7
-                    self.ids[f'lbl_nome_rank{i+1}'].text = crianca["nome"]
-                    self.ids[f'lbl_pts_rank{i+1}'].text = str(crianca["pontos"])
+                    self.ids[f'lbl_nome_rank{i+1}'].text = ranking["nome"]
+                    self.ids[f'lbl_pts_rank{i+1}'].text = str(ranking["pontos"])
 
                 # Se houver menos de 7 crianças, preenche os campos restantes com valores vazios
-                for i in range(len(top_criancas), 7):
+                for i in range(len(criancas), 7):
                     # Exibindo a foto apenas para os três primeiros colocados
                     if i < 3:
                         self.ids[f'img_rank{i+1}'].source = ""   # Imagem vazia
@@ -1398,35 +1805,151 @@ class Learny(MDApp):
         sm.add_widget(TelaBemVindo(name="TelaBemVindo"))
         
         return sm
+    
+    # Dados das coleções
+    medalhas_data = [
+        {
+            "_id": {"$oid": "67425204298d882dd65dca4f"},
+            "nome": "Iniciando!",
+            "descricao": "Terminou a primeira fase",
+            "iconMedalha": "assets/imagens/icon-medalha-verde.png"
+        },
+        {
+            "_id": {"$oid": "674252c1298d882dd65dca50"},
+            "nome": "A todo o vapor!",
+            "descricao": "Terminou quatro fases",
+            "iconMedalha": "assets/imagens/icon-medalha-vermelha.png"
+        },
+        {
+            "_id": {"$oid": "674252f7298d882dd65dca51"},
+            "nome": "Mundo Concluído!",
+            "descricao": "Terminou o primeiro mundo",
+            "iconMedalha": "assets/imagens/icon-medalha-azul.png"
+        }
+    ]
+
+    missoes_data = [
+        {"_id": {"$oid": "67423c59298d882dd65dca45"}, "nome": "Conclua 3 fases", "icon": "assets/imagens/icon-diaria-fases.png"},
+        {"_id": {"$oid": "67423c93298d882dd65dca46"}, "nome": "Conclua a fase de observação", "icon": "assets/imagens/icon-diaria-observacao.png"},
+        {"_id": {"$oid": "67423cac298d882dd65dca47"}, "nome": "Conclua a fase de escuta", "icon": "assets/imagens/icon-diaria-escuta.png"},
+        {"_id": {"$oid": "67423cc3298d882dd65dca48"}, "nome": "Conclua a fase de números", "icon": "assets/imagens/icon-diaria-numeros.png"},
+        {"_id": {"$oid": "67423cc3298d882dd65dca49"}, "nome": "Conclua a fase de memória", "icon": "assets/imagens/icon-diaria-memoria.png"},
+        {"_id": {"$oid": "67423cea298d882dd65dca50"}, "nome": "Conclua um mundo hoje", "icon": "assets/imagens/icon-diaria-mundo.png"}
+    ]
+
+    # Função para inicializar as coleções
+    def initialize_collections(self, db):
+        collections = {
+            "medalhas": self.medalhas_data,
+            "missoes": self.missoes_data
+        }
+        
+        for collection_name, initial_data in collections.items():
+            if collection_name not in db.list_collection_names():
+                collection = db[collection_name]
+                # Converter os IDs para ObjectId antes de inserir
+                formatted_data = [
+                    {**doc, "_id": ObjectId(doc["_id"]["$oid"])} for doc in initial_data
+                ]
+                collection.insert_many(formatted_data)
+                # print(f"Coleção '{collection_name}' criada e populada.")
+            else:
+                # print(f"Coleção '{collection_name}' já existe.")
+                pass
 
     def on_start(self):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+
+            if db is not None:
+                self.initialize_collections(db)
+                    
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar os dados:", e)
+        finally:
+            close_connection(client)
+
+    def iniciar_verificacao(self):
         # Inicia um relógio para verificar o arquivo a cada 0.5 segundo
         Clock.schedule_interval(self.verificar_tela_destino, 0.5)
 
+    def atualizar_dados(self):
+        try:
+            client, db = create_local_connection()  # Conectar ao MongoDB
+            if db is not None:
+                criancas = db["criancas"]
+                usuario_banco_crianca = criancas.find_one({"usuario": self.dados_usuario["usuario"]})
+                
+                if usuario_banco_crianca and usuario_banco_crianca != self.dados_usuario:
+                    self.set_dados_usuario(usuario_banco_crianca)
+
+                    # Atualiza os dados das telas
+                    tela_home = self.root.get_screen("TelaHome")
+                    tela_perfil = self.root.get_screen("TelaPerfil")
+                    tela_ranking = self.root.get_screen("TelaRanking")
+                    tela_notificacoes = self.root.get_screen("TelaNotificacoes")
+                    tela_atalhos = self.root.get_screen("TelaAtalhos")
+
+                    # Chama os métodos para atualizar os dados das telas
+                    if hasattr(tela_home, 'atualizar_dados'):
+                        tela_home.atualizar_dados()
+                    if hasattr(tela_perfil, 'atualizar_dados'):
+                        tela_perfil.atualizar_dados()
+                    if hasattr(tela_ranking, 'atualizar_dados'):
+                        tela_ranking.atualizar_dados()
+                    if hasattr(tela_ranking, 'atualizar_ranking'):
+                        tela_ranking.atualizar_ranking()
+                    if hasattr(tela_notificacoes, 'atualizar_notificacoes'):
+                        tela_notificacoes.atualizar_notificacoes()
+                    if hasattr(tela_atalhos, 'atualizar_dados'):
+                        tela_atalhos.atualizar_dados()
+
+                else:
+                    print("Nenhuma atualização necessária.")
+                    
+            else:
+                print("Erro na conexão com o banco de dados.")
+        except PyMongoError as e:
+            print("Erro ao atualizar os dados:", e)
+        finally:
+            close_connection(client)
+
+
     def verificar_tela_destino(self, dt):
-        # Caminho do arquivo que contém a tela de destino
         projeto_dir = os.path.dirname(os.path.abspath(__file__))
         tela_destino_file = os.path.join(projeto_dir, 'tela_destino.txt')
 
-        # Verifica se o arquivo existe e se contém algo
         if os.path.exists(tela_destino_file):
             with open(tela_destino_file, 'r') as f:
                 tela_destino = f.read().strip()
                 if tela_destino:
-                    # Cria a transição com a direção para a esquerda
+                    self.atualizar_dados()
                     transition = SlideTransition(direction='left')
-                    
-                    # Muda para a tela de destino com a transição definida
                     self.root.transition = transition
                     self.root.current = tela_destino
 
                     # Limpa o arquivo depois de mudar a tela
                     with open(tela_destino_file, 'w') as f:
-                        f.write('')  # Limpa o conteúdo do arquivo após a leitura
+                        f.write('')
+
 
     def on_stop(self):
         # Limpa a variável ao fechar o aplicativo
         self.dados_usuario = None
+
+        # Caminho do arquivo que contém a tela de destino
+        projeto_dir = os.path.dirname(os.path.abspath(__file__))
+        tela_destino_file = os.path.join(projeto_dir, 'tela_destino.txt')
+
+        # Verifica se o arquivo existe antes de tentar limpar
+        if os.path.exists(tela_destino_file):
+            try:
+                with open(tela_destino_file, 'w') as f:
+                    f.write('')  # Limpa o conteúdo do arquivo
+            except Exception as e:
+                print(f"Erro ao limpar tela de destino: {e}")
         
     def set_dados_usuario(self, dados_usuario):
         self.dados_usuario = dados_usuario

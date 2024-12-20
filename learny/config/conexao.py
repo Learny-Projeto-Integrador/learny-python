@@ -2,7 +2,6 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
 def create_connection():
-    # Substitua pela sua string de conexão
     mongo_uri = "mongodb+srv://joao:admin@cluster0.jydih.mongodb.net/learny-bd?retryWrites=true&w=majority&appName=Cluster0"
 
     try:
@@ -14,7 +13,7 @@ def create_connection():
         
         # Testar a conexão
         client.admin.command('ping')
-        print("Conexão realizada com sucesso!")
+        
         return db
     
     except PyMongoError as e:
@@ -24,7 +23,6 @@ def close_connection(client):
     try:
         if client:
             client.close()
-            print("Conexão com MongoDB fechada com sucesso!")
         else:
             print("Nenhuma conexão ativa para fechar.")
     
